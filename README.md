@@ -1,4 +1,4 @@
-# @king-3/file-kit
+# @king3/file-kit
 
 > FileKit — 多功能文件工具箱（Base64 转换 · 视频转音频 · 压缩/解压）
 
@@ -7,6 +7,12 @@
 - 📄 Base64 转换：文件 ↔ Base64 JSON，支持还原恢复。
 - 🎵 视频 → 音频：支持多种格式，从视频文件提取音频 (mp3 / m4a / flac / wav …)。
 - 🗜️ 文件压缩 / 解压：基于 fflate 提供高性能压缩、解压缩。
+
+## 全局安装
+
+```bash
+npm install @king3/file-kit -g
+```
 
 ## 使用示例
 
