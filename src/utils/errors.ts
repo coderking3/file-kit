@@ -70,6 +70,17 @@ export class FFmpegError extends AppError {
 }
 
 /**
+ * 异步操作包装器
+ */
+export async function tryCatch<T>(operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation()
+  } catch (error) {
+    handleError(error)
+  }
+}
+
+/**
  * 全局错误处理器
  */
 export function handleError(error: unknown): never {
@@ -88,28 +99,4 @@ export function handleError(error: unknown): never {
   }
 
   process.exit(1)
-}
-
-/**
- * 异步操作包装器
- */
-export async function tryCatch<T>(
-  operation: () => Promise<T>,
-  errorMessage: string,
-  operationName = 'unknown'
-): Promise<T> {
-  try {
-    return await operation()
-  } catch (error) {
-    if (error instanceof AppError) {
-      throw error
-    }
-    if (error instanceof Error) {
-      throw new ConversionError(
-        `${errorMessage}: ${error.message}`,
-        operationName
-      )
-    }
-    throw new ConversionError(errorMessage, operationName)
-  }
 }

@@ -1,5 +1,14 @@
 import type { AudioQuality, CompressionLevel } from '#/types'
 
+// 工具名称
+export const CLI_NAME = 'File Kit' as const
+
+// 版本号
+export const CLI_VERSION = '0.1.0' as const
+
+// 别名
+export const CLI_ALIAS = 'fkt' as const
+
 /**
  * 默认配置
  */

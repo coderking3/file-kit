@@ -31,10 +31,9 @@ export async function compressFiles(
   try {
     ensureDir(outputPath)
 
-    const stats = await fs.stat(inputPath)
     const files: Zippable = {}
 
-    if (stats.isDirectory()) {
+    if (isDirectory(inputPath)) {
       // 压缩整个文件夹
       const filePaths = await fg('**/*', {
         cwd: inputPath,

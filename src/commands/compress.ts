@@ -1,18 +1,18 @@
+import type { CompressCommandArgs, CompressionLevel } from '#/types'
+
+import { spinner } from '@clack/prompts'
 import { cyan } from 'ansis'
 import { defineCommand } from 'citty'
 
-import type { CompressCommandArgs, CompressionLevel } from '#/types'
-
 import { DEFAULT_CONFIG } from '#/config/defaults'
 import { compressFiles } from '#/core/compressor'
-import { buildOutputPath } from '#/utils/file'
+import { tryCatch } from '#/utils/errors'
 import {
+  buildOutputPath,
   createCommandContext,
-  createSpinner,
-  getOutputDir,
-  getValidatedInputPath,
-  handleCommandError
-} from '#/utils/command-helpers'
+  getInputPath,
+  getOutputDir
+} from '#/utils/helpers'
 import { confirm, text } from '#/utils/prompts'
 
 export default defineCommand({
@@ -41,9 +41,9 @@ export default defineCommand({
     const ctx = createCommandContext(rawArgs)
     ctx.showIntro()
 
-    await handleCommandError(async () => {
+    await tryCatch(async () => {
       // 获取输入路径
-      const inputPath = await getValidatedInputPath(typedArgs.input, {
+      const inputPath = await getInputPath(typedArgs.input, {
         message: '请输入文件或文件夹路径',
         placeholder: 'folder'
       })
@@ -84,16 +84,16 @@ export default defineCommand({
       const outputPath = buildOutputPath(inputPath, outputDir, 'zip')
 
       // 执行压缩
-      const spinner = createSpinner()
-      spinner.start('正在压缩')
+      const s = spinner()
+      s.start('正在压缩')
 
       await compressFiles(inputPath, outputPath, {
         level: compressionLevel
       })
 
-      spinner.stop(`文件已压缩到: ${cyan(outputPath)}`)
+      s.stop(`文件已压缩到: ${cyan(outputPath)}`)
 
       ctx.showOutro('🎉 压缩完成')
-    }, '压缩失败')
+    })
   }
 })

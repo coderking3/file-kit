@@ -2,9 +2,9 @@ import { accessSync, mkdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 
 /**
- * 检查路径是否存在
+ * 检查文件是否存在
  */
-export function pathExists(targetPath: string): boolean {
+export function fileExists(targetPath: string): boolean {
   try {
     accessSync(targetPath)
     return true
@@ -12,11 +12,6 @@ export function pathExists(targetPath: string): boolean {
     return false
   }
 }
-
-/**
- * 检查文件是否存在（别名,保持向后兼容）
- */
-export const fileExists = pathExists
 
 /**
  * 检查是否为文件
@@ -41,7 +36,7 @@ export function isDirectory(targetPath: string): boolean {
 }
 
 /**
- * 确保目录存在（改进版）
+ * 确保目录存在
  */
 export function ensureDir(targetPath: string): void {
   // 规范化路径
@@ -58,7 +53,7 @@ export function ensureDir(targetPath: string): void {
   }
 
   // 递归创建目录
-  if (!pathExists(dirPath)) {
+  if (!fileExists(dirPath)) {
     mkdirSync(dirPath, { recursive: true })
   }
 }
@@ -83,19 +78,6 @@ export function getFileName(
 ): string {
   const base = path.basename(filePath)
   return options?.withoutExt ? base.replace(path.extname(base), '') : base
-}
-
-/**
- * 构建输出路径
- */
-export function buildOutputPath(
-  inputPath: string,
-  outputDir: string,
-  newExt?: string
-): string {
-  const baseName = getFileName(inputPath, { withoutExt: !!newExt })
-  const fileName = newExt ? `${baseName}.${newExt}` : baseName
-  return path.join(outputDir, fileName)
 }
 
 /**

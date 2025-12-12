@@ -5,7 +5,7 @@ import ansis from 'ansis'
 import { defineCommand, runMain } from 'citty'
 
 import { base64, compress, decompress, restore, v2a } from './commands'
-import { CLI_ALIAS, CLI_NAME, CLI_VERSION } from './constants'
+import { CLI_ALIAS, CLI_NAME, CLI_VERSION } from './config/defaults'
 import { logger } from './utils/logger'
 import { select } from './utils/prompts'
 

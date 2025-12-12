@@ -1,18 +1,18 @@
+import type { RestoreCommandArgs } from '#/types'
+
 import path from 'node:path'
 
+import { spinner } from '@clack/prompts'
 import { bold, cyan } from 'ansis'
 import { defineCommand } from 'citty'
 
-import type { RestoreCommandArgs } from '#/types'
-
 import { base64ToFile, loadArchive } from '#/core/base64-converter'
+import { tryCatch } from '#/utils/errors'
 import {
   createCommandContext,
-  createSpinner,
-  getOutputDir,
-  getValidatedInputPath,
-  handleCommandError
-} from '#/utils/command-helpers'
+  getInputPath,
+  getOutputDir
+} from '#/utils/helpers'
 
 export default defineCommand({
   meta: {
@@ -35,9 +35,9 @@ export default defineCommand({
     const ctx = createCommandContext(rawArgs)
     ctx.showIntro()
 
-    await handleCommandError(async () => {
+    await tryCatch(async () => {
       // 获取输入路径
-      const inputPath = await getValidatedInputPath(typedArgs.input, {
+      const inputPath = await getInputPath(typedArgs.input, {
         message: '请输入 JSON 文件路径',
         placeholder: 'archive.json',
         validateExtension: '.json'
@@ -49,17 +49,17 @@ export default defineCommand({
       })
 
       // 执行恢复
-      const spinner = createSpinner()
-      spinner.start('正在恢复')
+      const s = spinner()
+      s.start('正在恢复')
 
       const archiveData = await loadArchive(inputPath)
       const restoredPath = await base64ToFile(archiveData, outputDir)
 
-      spinner.stop(
-        `文件已恢复到: ${cyan(restoredPath)},原始创建时间 ${bold.gray(archiveData.createdAt)}`
+      s.stop(
+        `文件已恢复到: ${cyan(restoredPath)}, 原始创建时间 ${bold.gray(archiveData.createdAt)}`
       )
 
       ctx.showOutro('🎉 恢复完成')
-    }, '恢复失败')
+    })
   }
 })

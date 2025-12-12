@@ -1,25 +1,26 @@
-import path from 'node:path'
-import process from 'node:process'
-
-import { cyan } from 'ansis'
-import { defineCommand } from 'citty'
-
 import type {
   AudioFormat,
   AudioQuality,
   VideoToAudioCommandArgs
 } from '#/types'
 
+import path from 'node:path'
+import process from 'node:process'
+
+import { spinner } from '@clack/prompts'
+import { cyan } from 'ansis'
+import { defineCommand } from 'citty'
+
 import { AUDIO_FORMATS } from '#/config/audio-formats'
 import { DEFAULT_CONFIG } from '#/config/defaults'
 import { extractAudio } from '#/core/video-converter'
+import { tryCatch } from '#/utils/errors'
 import {
+  buildOutputPath,
   createCommandContext,
-  createSpinner,
-  getOutputDir,
-  getValidatedInputPath,
-  handleCommandError
-} from '#/utils/command-helpers'
+  getInputPath,
+  getOutputDir
+} from '#/utils/helpers'
 import { logger } from '#/utils/logger'
 import { select } from '#/utils/prompts'
 
@@ -81,9 +82,9 @@ export default defineCommand({
     const ctx = createCommandContext(rawArgs)
     ctx.showIntro()
 
-    await handleCommandError(async () => {
+    await tryCatch(async () => {
       // 获取输入文件路径
-      const inputPath = await getValidatedInputPath(typedArgs.input, {
+      const inputPath = await getInputPath(typedArgs.input, {
         message: '请输入视频文件路径',
         placeholder: 'video.mp4'
       })
@@ -124,22 +125,29 @@ export default defineCommand({
         quality = DEFAULT_CONFIG.videoToAudio.defaultQuality
       }
 
-      // 开始转换
-      const spinner = createSpinner()
-      spinner.start('正在提取音频 0%')
-
-      const outputPath = await extractAudio(
+      // 构建输出路径
+      const outputPath = buildOutputPath(
         inputPath,
         outputDir,
+        formatConfig.extension
+      )
+
+      // 开始转换
+      const s = spinner()
+      s.start('正在提取音频 0%')
+
+      await extractAudio(
+        inputPath,
+        outputPath,
         { format, quality },
         (percent) => {
-          spinner.update(`正在提取音频 ${percent}%`)
+          s.message(`正在提取音频 ${percent}%`)
         }
       )
 
-      spinner.stop(`音频已提取到: ${cyan(outputPath)}`)
+      s.stop(`音频已提取到: ${cyan(outputPath)}`)
 
       ctx.showOutro('🎉 提取完成')
-    }, '提取失败')
+    })
   }
 })

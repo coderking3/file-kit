@@ -1,13 +1,8 @@
 import type { Buffer } from 'node:buffer'
-import type {
-  AudioFormat,
-  AudioQuality,
-  ProgressCallback,
-  VideoToAudioOptions
-} from '#/types'
+
+import type { ProgressCallback, VideoToAudioOptions } from '#/types'
 
 import { existsSync } from 'node:fs'
-import path from 'node:path'
 
 import ffmpegPath from '@ffmpeg-installer/ffmpeg'
 import { execa } from 'execa'
@@ -15,7 +10,7 @@ import { execa } from 'execa'
 import { AUDIO_FORMATS } from '#/config/audio-formats'
 import { DEFAULT_CONFIG } from '#/config/defaults'
 import { FFmpegError, ValidationError } from '#/utils/errors'
-import { ensureDir, getFileName } from '#/utils/file'
+import { ensureDir } from '#/utils/file'
 
 /**
  * 解析时间字符串为秒
@@ -68,7 +63,7 @@ const buildFFmpegArgs = (
  */
 export async function extractAudio(
   videoPath: string,
-  outputDir: string,
+  outputPath: string,
   options: VideoToAudioOptions,
   onProgress?: ProgressCallback
 ): Promise<string> {
@@ -76,8 +71,8 @@ export async function extractAudio(
   if (!videoPath) {
     throw new ValidationError('视频文件路径不能为空', 'videoPath')
   }
-  if (!outputDir) {
-    throw new ValidationError('输出目录不能为空', 'outputDir')
+  if (!outputPath) {
+    throw new ValidationError('输出路径不能为空', 'outputPath')
   }
 
   // 验证 ffmpeg
@@ -95,14 +90,7 @@ export async function extractAudio(
   }
 
   try {
-    ensureDir(outputDir)
-
-    // 构建输出路径
-    const outputName = getFileName(videoPath, { withoutExt: true })
-    const outputPath = path.join(
-      outputDir,
-      `${outputName}.${formatConfig.extension}`
-    )
+    ensureDir(outputPath)
 
     // 构建命令参数
     const args = buildFFmpegArgs(videoPath, outputPath, options)

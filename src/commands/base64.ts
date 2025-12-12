@@ -1,19 +1,19 @@
+import type { Base64CommandArgs } from '#/types'
+
 import path from 'node:path'
 
+import { spinner } from '@clack/prompts'
 import { bold, cyan } from 'ansis'
 import { defineCommand } from 'citty'
 
-import type { Base64CommandArgs } from '#/types'
-
 import { fileToBase64 } from '#/core/base64-converter'
-import { buildOutputPath } from '#/utils/file'
+import { tryCatch } from '#/utils/errors'
 import {
+  buildOutputPath,
   createCommandContext,
-  createSpinner,
-  getOutputDir,
-  getValidatedInputPath,
-  handleCommandError
-} from '#/utils/command-helpers'
+  getInputPath,
+  getOutputDir
+} from '#/utils/helpers'
 
 export default defineCommand({
   meta: {
@@ -36,9 +36,9 @@ export default defineCommand({
     const ctx = createCommandContext(rawArgs)
     ctx.showIntro()
 
-    await handleCommandError(async () => {
+    await tryCatch(async () => {
       // 获取输入路径
-      const inputPath = await getValidatedInputPath(typedArgs.input, {
+      const inputPath = await getInputPath(typedArgs.input, {
         message: '请输入文件路径',
         placeholder: 'file.txt'
       })
@@ -52,16 +52,16 @@ export default defineCommand({
       const outputPath = buildOutputPath(inputPath, outputDir, 'json')
 
       // 执行转换
-      const spinner = createSpinner()
-      spinner.start('正在转换')
+      const s = spinner()
+      s.start('正在转换')
 
       const archiveData = await fileToBase64(inputPath, outputPath)
 
-      spinner.stop(
-        `文件已保存到: ${cyan(outputPath)},共计 ${bold.gray((archiveData.file.size / 1024).toFixed(2))} KB`
+      s.stop(
+        `文件已保存到: ${cyan(outputPath)}, 共计 ${bold.gray((archiveData.file.size / 1024).toFixed(2))} KB`
       )
 
       ctx.showOutro('🎉 转换完成')
-    }, '转换失败')
+    })
   }
 })

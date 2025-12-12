@@ -1,14 +1,13 @@
+import path from 'node:path'
 import process from 'node:process'
 
-import { intro, outro, spinner as clackSpinner } from '@clack/prompts'
+import { intro, outro } from '@clack/prompts'
 import { bold, cyan } from 'ansis'
 
-import { CLI_NAME } from '#/constants'
-
-import { handleError } from './errors'
-import { fileExists, validateExtension } from './file'
-import { logger } from './logger'
-import { confirm, text } from './prompts'
+import { CLI_NAME } from '#/config/defaults'
+import { fileExists, getFileName, validateExtension } from '#/utils/file'
+import { logger } from '#/utils/logger'
+import { confirm, text } from '#/utils/prompts'
 
 /**
  * 命令执行上下文
@@ -43,13 +42,13 @@ export interface InputPathOptions {
   message: string
   placeholder: string
   validateExtension?: string
-  customValidate?: (value: string) => string | void
+  customValidate?: (value: string) => string
 }
 
 /**
  * 获取并验证输入路径
  */
-export async function getValidatedInputPath(
+export async function getInputPath(
   providedPath: string | undefined,
   options: InputPathOptions
 ): Promise<string> {
@@ -102,7 +101,7 @@ export interface OutputDirOptions {
 }
 
 /**
- * 获取输出目录（支持交互式确认）
+ * 获取输出目录
  */
 export async function getOutputDir(
   providedDir: string | undefined,
@@ -123,47 +122,14 @@ export async function getOutputDir(
 }
 
 /**
- * 进度 Spinner 控制器
+ * 构建输出路径
  */
-export interface SpinnerController {
-  start: (message: string) => void
-  update: (message: string) => void
-  stop: (message: string) => void
-}
-
-/**
- * 创建进度 spinner
- */
-export function createSpinner(): SpinnerController {
-  const s = clackSpinner()
-
-  return {
-    start: (message: string) => {
-      s.start(message)
-    },
-    update: (message: string) => {
-      s.message(message)
-    },
-    stop: (message: string) => {
-      s.stop(message)
-    }
-  }
-}
-
-/**
- * 命令错误处理包装器
- * 注意: 此函数在错误时会调用 process.exit,因此实际不会返回
- */
-export async function handleCommandError<T>(
-  operation: () => Promise<T>,
-  errorPrefix: string
-): Promise<T> {
-  try {
-    return await operation()
-  } catch (error) {
-    handleError(error)
-    // handleError 会调用 process.exit(1),所以下面的代码不会执行
-    // 但为了类型安全,我们需要一个 never 返回的占位
-    throw error // 这行实际不会执行,但能满足 TypeScript
-  }
+export function buildOutputPath(
+  inputPath: string,
+  outputDir: string,
+  newExt?: string
+): string {
+  const baseName = getFileName(inputPath, { withoutExt: !!newExt })
+  const fileName = newExt ? `${baseName}.${newExt}` : baseName
+  return path.join(outputDir, fileName)
 }
