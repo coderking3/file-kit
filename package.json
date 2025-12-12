@@ -31,7 +31,6 @@
   "imports": {
     "#/*": "./src/*"
   },
-  "main": "./dist/cli.mjs",
   "bin": {
     "fkt": "./bin/cli.mjs"
   },

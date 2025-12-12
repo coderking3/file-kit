@@ -1,15 +1,19 @@
 import path from 'node:path'
-import process from 'node:process'
 
-import { intro, outro, spinner } from '@clack/prompts'
 import { bold, cyan } from 'ansis'
 import { defineCommand } from 'citty'
 
-import { CLI_NAME } from '#/constants'
+import type { DecompressCommandArgs } from '#/types'
+
 import { decompressFile } from '#/core/compressor'
-import { fileExists, getFileName } from '#/utils/file'
-import { logger } from '#/utils/logger'
-import { confirm, text } from '#/utils/prompts'
+import { getFileName } from '#/utils/file'
+import {
+  createCommandContext,
+  createSpinner,
+  getOutputDir,
+  getValidatedInputPath,
+  handleCommandError
+} from '#/utils/command-helpers'
 
 export default defineCommand({
   meta: {
@@ -28,60 +32,39 @@ export default defineCommand({
     }
   },
   async run({ args, rawArgs }) {
-    const isMainInteractive = Array.isArray(rawArgs) && rawArgs.includes('-i')
-    if (!isMainInteractive) intro(bold.cyan(`🔧 ${CLI_NAME}`))
+    const typedArgs = args as unknown as DecompressCommandArgs
+    const ctx = createCommandContext(rawArgs)
+    ctx.showIntro()
 
-    let inputPath = args.input
-    let outputDir = args.output
-
-    if (!inputPath) {
-      inputPath = await text({
+    await handleCommandError(async () => {
+      // 获取输入路径
+      const inputPath = await getValidatedInputPath(typedArgs.input, {
         message: '请输入 zip 文件路径',
         placeholder: 'archive.zip',
-        validate: (value) => {
-          if (!value) return '文件路径不能为空'
-          if (!fileExists(value)) return '文件不存在'
-          if (!value.endsWith('.zip')) return '请输入 zip 格式的文件'
-        }
+        validateExtension: '.zip'
       })
-    } else if (!fileExists(inputPath)) {
-      logger.error(`文件不存在: ${inputPath}`)
-      process.exit(1)
-    }
 
-    if (!outputDir) {
+      // 获取输出目录
       const defaultOutputDir = path.join(
         path.dirname(inputPath),
         getFileName(inputPath, { withoutExt: true })
       )
 
-      const shouldUseDefault = await confirm({
-        message: `使用默认输出目录: ${defaultOutputDir}`
+      const outputDir = await getOutputDir(typedArgs.output, {
+        defaultDir: defaultOutputDir
       })
 
-      outputDir = shouldUseDefault
-        ? defaultOutputDir
-        : await text({
-            message: '请输入输出目录',
-            placeholder: './.output'
-          })
-    }
-
-    try {
-      const s = spinner()
-      s.start('正在解压')
-      s.message(`正在解压`)
+      // 执行解压
+      const spinner = createSpinner()
+      spinner.start('正在解压')
 
       const files = await decompressFile(inputPath, outputDir)
 
-      s.stop(
-        `文件已解压到: ${cyan(outputDir)}，共计 ${bold.gray(files.length.toString())} 个文件。`
+      spinner.stop(
+        `文件已解压到: ${cyan(outputDir)},共计 ${bold.gray(files.length.toString())} 个文件`
       )
 
-      outro(bold.green('🎉 解压完成'))
-    } catch (error) {
-      logger.error(`解压失败: ${error}`)
-      process.exit(1)
-    }
+      ctx.showOutro('🎉 解压完成')
+    }, '解压失败')
   }
 })

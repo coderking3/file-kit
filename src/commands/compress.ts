@@ -1,14 +1,18 @@
-import path from 'node:path'
-import process from 'node:process'
-
-import { intro, outro, spinner } from '@clack/prompts'
-import { bold, cyan } from 'ansis'
+import { cyan } from 'ansis'
 import { defineCommand } from 'citty'
 
-import { CLI_NAME } from '#/constants'
+import type { CompressCommandArgs, CompressionLevel } from '#/types'
+
+import { DEFAULT_CONFIG } from '#/config/defaults'
 import { compressFiles } from '#/core/compressor'
-import { fileExists, getFileName } from '#/utils/file'
-import { logger } from '#/utils/logger'
+import { buildOutputPath } from '#/utils/file'
+import {
+  createCommandContext,
+  createSpinner,
+  getOutputDir,
+  getValidatedInputPath,
+  handleCommandError
+} from '#/utils/command-helpers'
 import { confirm, text } from '#/utils/prompts'
 
 export default defineCommand({
@@ -33,53 +37,37 @@ export default defineCommand({
     }
   },
   async run({ args, rawArgs }) {
-    const isMainInteractive = Array.isArray(rawArgs) && rawArgs.includes('-i')
-    if (!isMainInteractive) intro(bold.cyan(`🔧 ${CLI_NAME}`))
+    const typedArgs = args as unknown as CompressCommandArgs
+    const ctx = createCommandContext(rawArgs)
+    ctx.showIntro()
 
-    let inputPath = args.input
-    let outputDir = args.output
-    let compressionLevel = args.level
-
-    if (!inputPath) {
-      inputPath = await text({
+    await handleCommandError(async () => {
+      // 获取输入路径
+      const inputPath = await getValidatedInputPath(typedArgs.input, {
         message: '请输入文件或文件夹路径',
-        placeholder: 'folder',
-        validate: (value) => {
-          if (!value) return '路径不能为空'
-          if (!fileExists(value)) return '路径不存在'
-        }
-      })
-    } else if (!fileExists(inputPath)) {
-      logger.error(`路径不存在: ${inputPath}`)
-      process.exit(1)
-    }
-
-    if (!outputDir) {
-      const defaultOutputDir = './.output'
-      const shouldUseDefault = await confirm({
-        message: `使用默认输出目录: ${defaultOutputDir}`
+        placeholder: 'folder'
       })
 
-      outputDir = shouldUseDefault
-        ? defaultOutputDir
-        : await text({
-            message: '请输入输出目录',
-            placeholder: './.output'
-          })
-    }
-
-    if (!compressionLevel) {
-      const defaultLevel = '6' // 默认为 '6'
-      const shouldUseDefault = await confirm({
-        message: `使用默认压缩级别: ${defaultLevel} (速度/平衡)`
+      // 获取输出目录
+      const outputDir = await getOutputDir(typedArgs.output, {
+        defaultDir: DEFAULT_CONFIG.output.defaultDir
       })
 
-      const levelInput = shouldUseDefault
-        ? defaultLevel
-        : await text({
+      // 获取压缩级别
+      let compressionLevel: CompressionLevel = DEFAULT_CONFIG.compress.level
+
+      if (typedArgs.level) {
+        compressionLevel = Number.parseInt(typedArgs.level) as CompressionLevel
+      } else {
+        const defaultLevel = DEFAULT_CONFIG.compress.level.toString()
+        const shouldUseDefault = await confirm({
+          message: `使用默认压缩级别: ${defaultLevel} (${DEFAULT_CONFIG.compress.levelDescription[DEFAULT_CONFIG.compress.level]})`
+        })
+
+        if (!shouldUseDefault) {
+          const levelInput = await text({
             message: '请输入新的压缩级别 (0-9)',
-            placeholder: `0=最快, 9=最小`,
-            // initialValue: defaultLevel,
+            placeholder: '0=最快, 9=最小',
             validate: (value) => {
               if (!value) return '压缩级别不能为空'
               const num = Number.parseInt(value)
@@ -88,33 +76,24 @@ export default defineCommand({
               return undefined
             }
           })
-
-      // 如果用户输入了值，则更新 compressionLevel
-      if (typeof levelInput === 'string') {
-        compressionLevel = levelInput
+          compressionLevel = Number.parseInt(levelInput) as CompressionLevel
+        }
       }
-    }
 
-    const outputPath = path.join(
-      outputDir,
-      `${getFileName(inputPath, { withoutExt: true })}.zip`
-    )
+      // 构建输出路径
+      const outputPath = buildOutputPath(inputPath, outputDir, 'zip')
 
-    try {
-      const s = spinner()
-      s.start('正在压缩')
-      s.message(`正在压缩`)
+      // 执行压缩
+      const spinner = createSpinner()
+      spinner.start('正在压缩')
 
       await compressFiles(inputPath, outputPath, {
-        level: Number.parseInt(args.level as string) as any
+        level: compressionLevel
       })
 
-      s.stop(`文件已压缩到: ${cyan(outputPath)}`)
+      spinner.stop(`文件已压缩到: ${cyan(outputPath)}`)
 
-      outro(bold.green('🎉 压缩完成'))
-    } catch (error) {
-      logger.error(`压缩失败: ${error}`)
-      process.exit(1)
-    }
+      ctx.showOutro('🎉 压缩完成')
+    }, '压缩失败')
   }
 })

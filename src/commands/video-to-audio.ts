@@ -1,17 +1,27 @@
-import type { AudioFormat, AudioQuality } from '#/core/video-converter'
-
 import path from 'node:path'
 import process from 'node:process'
 
-import { intro, outro, spinner } from '@clack/prompts'
-import { bold, cyan } from 'ansis'
+import { cyan } from 'ansis'
 import { defineCommand } from 'citty'
 
-import { CLI_NAME } from '#/constants'
-import { AUDIO_FORMATS, extractAudio } from '#/core/video-converter'
-import { fileExists } from '#/utils/file'
+import type {
+  AudioFormat,
+  AudioQuality,
+  VideoToAudioCommandArgs
+} from '#/types'
+
+import { AUDIO_FORMATS } from '#/config/audio-formats'
+import { DEFAULT_CONFIG } from '#/config/defaults'
+import { extractAudio } from '#/core/video-converter'
+import {
+  createCommandContext,
+  createSpinner,
+  getOutputDir,
+  getValidatedInputPath,
+  handleCommandError
+} from '#/utils/command-helpers'
 import { logger } from '#/utils/logger'
-import { confirm, select, text } from '#/utils/prompts'
+import { select } from '#/utils/prompts'
 
 // 格式选项配置
 const FORMAT_OPTIONS = [
@@ -67,94 +77,69 @@ export default defineCommand({
     }
   },
   async run({ args, rawArgs }) {
-    const isMainInteractive = Array.isArray(rawArgs) && rawArgs.includes('-i')
-    if (!isMainInteractive) intro(bold.cyan(`🔧 ${CLI_NAME}`))
+    const typedArgs = args as unknown as VideoToAudioCommandArgs
+    const ctx = createCommandContext(rawArgs)
+    ctx.showIntro()
 
-    let inputPath = args.input
-    let outputDir = args.output
-
-    // 获取输入文件路径
-    if (!inputPath) {
-      inputPath = await text({
+    await handleCommandError(async () => {
+      // 获取输入文件路径
+      const inputPath = await getValidatedInputPath(typedArgs.input, {
         message: '请输入视频文件路径',
-        placeholder: 'video.mp4',
-        validate: (value) => {
-          if (!value) return '文件路径不能为空'
-          if (!fileExists(value)) return '文件不存在'
-        }
-      })
-    } else if (!fileExists(inputPath)) {
-      logger.error(`文件不存在: ${inputPath}`)
-      process.exit(1)
-    }
-
-    // 获取输出目录
-    if (!outputDir) {
-      const defaultOutputDir = path.dirname(inputPath)
-      const shouldUseDefault = await confirm({
-        message: `使用默认输出目录: ${cyan(defaultOutputDir)}`
+        placeholder: 'video.mp4'
       })
 
-      outputDir = shouldUseDefault
-        ? defaultOutputDir
-        : await text({
-            message: '请输入输出目录',
-            placeholder: './.output',
-            validate: (value) => {
-              if (!value) return '输出目录不能为空'
-            }
-          })
-    }
+      // 获取输出目录
+      const outputDir = await getOutputDir(typedArgs.output, {
+        defaultDir: path.dirname(inputPath)
+      })
 
-    // 选择音频格式
-    let format = args.format as AudioFormat
+      // 选择音频格式
+      let format = typedArgs.format as AudioFormat
 
-    if (!format) {
-      format = (await select({
-        message: '选择音频格式',
-        options: FORMAT_OPTIONS
-      })) as AudioFormat
-    } else if (!AUDIO_FORMATS[format]) {
-      logger.error(`不支持的格式: ${format}`)
-      logger.info(`支持的格式: ${Object.keys(AUDIO_FORMATS).join(', ')}`)
-      process.exit(1)
-    }
+      if (!format) {
+        format = (await select({
+          message: '选择音频格式',
+          options: FORMAT_OPTIONS
+        })) as AudioFormat
+      } else if (!AUDIO_FORMATS[format]) {
+        logger.error(`不支持的格式: ${format}`)
+        logger.info(`支持的格式: ${Object.keys(AUDIO_FORMATS).join(', ')}`)
+        process.exit(1)
+      }
 
-    // 选择音频质量（如果格式需要）
-    const formatConfig = AUDIO_FORMATS[format]
-    let quality: AudioQuality | undefined
+      // 选择音频质量
+      const formatConfig = AUDIO_FORMATS[format]
+      let quality: AudioQuality | undefined
 
-    if (!args.quality && formatConfig.needsQuality) {
-      const message = format === 'flac' ? '选择压缩级别' : '选择音频质量'
+      if (!typedArgs.quality && formatConfig.needsQuality) {
+        const message = format === 'flac' ? '选择压缩级别' : '选择音频质量'
 
-      quality = (await select({
-        message,
-        options: getQualityOptions(format)
-      })) as AudioQuality
-    } else if (args.quality) {
-      quality = args.quality as AudioQuality
-    }
+        quality = (await select({
+          message,
+          options: getQualityOptions(format)
+        })) as AudioQuality
+      } else if (typedArgs.quality) {
+        quality = typedArgs.quality as AudioQuality
+      } else {
+        quality = DEFAULT_CONFIG.videoToAudio.defaultQuality
+      }
 
-    // 开始转换
-    try {
-      const s = spinner()
-      s.start('正在提取音频 0%...')
+      // 开始转换
+      const spinner = createSpinner()
+      spinner.start('正在提取音频 0%')
 
       const outputPath = await extractAudio(
         inputPath,
         outputDir,
         { format, quality },
         (percent) => {
-          s.message(`正在提取音频 ${percent}%`)
+          spinner.update(`正在提取音频 ${percent}%`)
         }
       )
 
-      s.stop(`音频已提取到: ${cyan(outputPath)}`)
+      spinner.stop(`音频已提取到: ${cyan(outputPath)}`)
 
-      outro(bold.green('🎉 提取完成'))
-    } catch (error: any) {
-      logger.error(`提取失败: ${error.message}`)
-      process.exit(1)
-    }
+      ctx.showOutro('🎉 提取完成')
+    }, '提取失败')
   }
 })

@@ -52,3 +52,39 @@ fkt -i
 │       Utils 层 (utils/)             │  ← 通用工具函数
 └─────────────────────────────────────┘
 ```
+
+```
+
+src/
+├── cli.ts                      # 入口文件 (无变化)
+├── constants.ts                # 常量定义 (无变化)
+│
+├── config/                     # ✨ 新增配置层
+│   ├── defaults.ts            # 集中管理默认配置
+│   └── audio-formats.ts       # 音频格式配置分离
+│
+├── commands/
+│   ├── index.ts
+│   ├── base64.ts              # 59 行 ↓28%,清晰简洁
+│   ├── restore.ts             # 54 行 ↓27%,清晰简洁
+│   ├── compress.ts            # 72 行 ↓35%,清晰简洁
+│   ├── decompress.ts          # 58 行 ↓23%,清晰简洁
+│   └── video-to-audio.ts      # 119 行 ↓17%,清晰简洁
+│
+├── core/
+│   ├── base64-converter.ts    # ✅ 完善验证和错误处理
+│   ├── compressor.ts          # ✅ 完善验证和错误处理
+│   └── video-converter.ts     # ✅ 配置分离,错误处理优化
+│
+├── utils/
+│   ├── errors.ts              # ✨ 新增统一错误系统
+│   ├── command-helpers.ts     # ✨ 新增命令助手函数
+│   ├── file.ts                # ✅ 增强功能,更多工具
+│   ├── logger.ts              # 无变化
+│   ├── prompts.ts             # 无变化
+│   └── time.ts                # 无变化
+│
+└── types/
+    └── index.ts               # ✅ 完整类型体系
+
+```
