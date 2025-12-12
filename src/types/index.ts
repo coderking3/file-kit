@@ -37,13 +37,6 @@ export interface AudioFormatConfig {
   extraArgs: string[]
 }
 
-// ============ 压缩相关 ============
-export type CompressionLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-
-export interface CompressOptions {
-  level?: CompressionLevel
-}
-
 // ============ 命令参数类型 ============
 export interface BaseCommandArgs {
   input?: string
@@ -53,13 +46,6 @@ export interface BaseCommandArgs {
 export interface Base64CommandArgs extends BaseCommandArgs {}
 
 export interface RestoreCommandArgs extends BaseCommandArgs {}
-
-export interface CompressCommandArgs extends BaseCommandArgs {
-  level?: string
-}
-
-export interface DecompressCommandArgs extends BaseCommandArgs {}
-
 export interface VideoToAudioCommandArgs extends BaseCommandArgs {
   format?: string
   quality?: string

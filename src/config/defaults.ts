@@ -1,4 +1,4 @@
-import type { AudioQuality, CompressionLevel } from '#/types'
+import type { AudioQuality } from '#/types'
 
 // 工具名称
 export const CLI_NAME = 'File Kit' as const
@@ -18,18 +18,6 @@ export const DEFAULT_CONFIG = {
     defaultDir: './.output',
     useInputDirForBase64: true,
     useInputDirForRestore: true
-  },
-
-  // 压缩配置
-  compress: {
-    level: 6 as CompressionLevel,
-    levelDescription: {
-      0: '最快(无压缩)',
-      1: '很快',
-      3: '快速',
-      6: '平衡(推荐)',
-      9: '最大压缩(慢)'
-    } as Record<CompressionLevel, string>
   },
 
   // 视频转音频配置
