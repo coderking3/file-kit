@@ -1,8 +1,8 @@
 {
   "name": "file-kit",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "packageManager": "pnpm@10.25.0",
-  "description": "多功能文件工具箱（Base64 转换 · 视频转音频 · 压缩/解压）",
+  "description": "多功能文件工具箱（Base64 转换 · 视频转音频）",
   "type": "module",
   "keywords": [
     "file",
