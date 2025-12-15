@@ -13,7 +13,7 @@ import { defineCommand } from 'citty'
 
 import { AUDIO_FORMATS } from '#/config/audio-formats'
 import { DEFAULT_CONFIG } from '#/config/defaults'
-import { extractAudio } from '#/core/video-converter'
+import { extractAudio } from '#/core/extract'
 import { tryCatch } from '#/utils/errors'
 import {
   buildOutputPath,

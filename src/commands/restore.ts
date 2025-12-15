@@ -6,12 +6,13 @@ import { spinner } from '@clack/prompts'
 import { bold, cyan } from 'ansis'
 import { defineCommand } from 'citty'
 
-import { base64ToFile, loadArchive } from '#/core/base64-converter'
+import { base64ToFile } from '#/core/base64'
 import { tryCatch } from '#/utils/errors'
 import {
   createCommandContext,
   getInputPath,
-  getOutputDir
+  getOutputDir,
+  loadArchive
 } from '#/utils/helpers'
 
 export default defineCommand({
@@ -52,7 +53,7 @@ export default defineCommand({
       const s = spinner()
       s.start('正在恢复')
 
-      const archiveData = await loadArchive(inputPath)
+      const archiveData = await loadArchive(inputPath,'base64')
       const restoredPath = await base64ToFile(archiveData, outputDir)
 
       s.stop(

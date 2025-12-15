@@ -1,3 +1,5 @@
 export { default as base64 } from './base64'
 export { default as restore } from './restore'
 export { default as v2a } from './video-to-audio'
+export { default as encrypt } from './encrypt'
+export { default as decrypt } from './decrypt'

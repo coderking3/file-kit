@@ -6,7 +6,7 @@ import { spinner } from '@clack/prompts'
 import { bold, cyan } from 'ansis'
 import { defineCommand } from 'citty'
 
-import { fileToBase64 } from '#/core/base64-converter'
+import { fileToBase64 } from '#/core/base64'
 import { tryCatch } from '#/utils/errors'
 import {
   buildOutputPath,

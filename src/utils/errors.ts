@@ -57,6 +57,19 @@ export class ConversionError extends AppError {
 }
 
 /**
+ * 加密/解密错误
+ */
+export class CryptoError extends AppError {
+  constructor(
+    message: string,
+    public operation: string
+  ) {
+    super(message, 'CRYPTO_ERROR', { operation })
+    this.name = 'CryptoError'
+  }
+}
+
+/**
  * FFmpeg 相关错误
  */
 export class FFmpegError extends AppError {

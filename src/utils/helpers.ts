@@ -1,4 +1,5 @@
 import path from 'node:path'
+import fs from 'node:fs/promises'
 import process from 'node:process'
 
 import { intro, outro } from '@clack/prompts'
@@ -8,6 +9,8 @@ import { CLI_NAME } from '#/config/defaults'
 import { fileExists, getFileName, validateExtension } from '#/utils/file'
 import { logger } from '#/utils/logger'
 import { confirm, text } from '#/utils/prompts'
+import { Base64ArchiveData, CryptoArchiveData } from '#/types'
+import { AppError, FileError, ValidationError } from './errors'
 
 /**
  * 命令执行上下文
@@ -132,4 +135,90 @@ export function buildOutputPath(
   const baseName = getFileName(inputPath, { withoutExt: !!newExt })
   const fileName = newExt ? `${baseName}.${newExt}` : baseName
   return path.join(outputDir, fileName)
+}
+
+export interface LoadArchiveData {
+  /**
+   * 加载 Base64 归档
+   */
+  (filePath: string, type: 'base64'): Promise<Base64ArchiveData>
+
+  /**
+   * 加载加密归档
+   */
+  (filePath: string, type: 'crypto'): Promise<CryptoArchiveData>
+}
+
+/**
+ * 从文件加载归档数据
+ */
+export const loadArchive: LoadArchiveData = async (
+  filePath: string,
+  type: 'base64' | 'crypto'
+): Promise<Base64ArchiveData | CryptoArchiveData> => {
+  if (!filePath) {
+    throw new ValidationError('文件路径不能为空', 'filePath')
+  }
+
+  try {
+    const content = await fs.readFile(filePath, 'utf-8')
+    const data = JSON.parse(content) as Base64ArchiveData | CryptoArchiveData
+
+    // 验证归档类型
+    if (!data.type || (data.type !== 'base64' && data.type !== 'crypto')) {
+      throw new ValidationError(
+        '不是有效的归档文件（type 必须是 base64 或 crypto）',
+        'archiveData.type'
+      )
+    }
+
+    // 验证期望类型是否匹配
+    if (data.type !== type) {
+      throw new ValidationError(
+        `期望的归档类型是 ${type}，但实际是 ${data.type}`,
+        'archiveData.type'
+      )
+    }
+
+    // 根据类型验证必需字段
+    if (type === 'base64') {
+      const base64Data = data as Base64ArchiveData
+      if (!base64Data.file?.base64) {
+        throw new ValidationError(
+          'Base64 归档文件缺少 base64 数据',
+          'archiveData.file.base64'
+        )
+      }
+      return base64Data
+    } else {
+      const cryptoData = data as CryptoArchiveData
+      const requiredFields: (keyof CryptoArchiveData['file'])[] = [
+        'iv',
+        'authTag',
+        'salt',
+        'encrypted'
+      ]
+
+      for (const field of requiredFields) {
+        if (!cryptoData.file?.[field]) {
+          throw new ValidationError(
+            `加密归档文件缺少 ${field} 数据`,
+            `archiveData.file.${field}`
+          )
+        }
+      }
+      return cryptoData
+    }
+  } catch (error: any) {
+    if (error instanceof ValidationError) {
+      throw error
+    }
+    if (error.code === 'ENOENT') {
+      throw new FileError(`归档文件不存在: ${filePath}`, filePath)
+    }
+    if (error instanceof SyntaxError) {
+      throw new ValidationError('归档文件 JSON 格式错误', 'json')
+    }
+    throw new AppError(`加载归档失败: ${error.message}`, 'loadArchive')
+  }
 }

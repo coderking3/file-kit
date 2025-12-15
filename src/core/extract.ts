@@ -24,7 +24,7 @@ const parseTime = (hours: string, minutes: string, seconds: string): number =>
  * 构建 FFmpeg 参数
  */
 const buildFFmpegArgs = (
-  videoPath: string,
+  filePath: string,
   outputPath: string,
   options: VideoToAudioOptions
 ): string[] => {
@@ -32,7 +32,7 @@ const buildFFmpegArgs = (
   const quality = options.quality || DEFAULT_CONFIG.videoToAudio.defaultQuality
   const bitrateOrQuality = options.bitrate || formatConfig.quality[quality]
 
-  const args = ['-i', videoPath, '-vn']
+  const args = ['-i', filePath, '-vn']
 
   // 强制立体声，避免多声道兼容性问题
   args.push('-ac', '2')
@@ -62,14 +62,14 @@ const buildFFmpegArgs = (
  * 从视频中提取音频
  */
 export async function extractAudio(
-  videoPath: string,
+  filePath: string,
   outputPath: string,
   options: VideoToAudioOptions,
   onProgress?: ProgressCallback
 ): Promise<string> {
   // 验证输入
-  if (!videoPath) {
-    throw new ValidationError('视频文件路径不能为空', 'videoPath')
+  if (!filePath) {
+    throw new ValidationError('视频文件路径不能为空', 'filePath')
   }
   if (!outputPath) {
     throw new ValidationError('输出路径不能为空', 'outputPath')
@@ -93,7 +93,7 @@ export async function extractAudio(
     ensureDir(outputPath)
 
     // 构建命令参数
-    const args = buildFFmpegArgs(videoPath, outputPath, options)
+    const args = buildFFmpegArgs(filePath, outputPath, options)
 
     const subprocess = execa(ffmpegPath.path, args)
 
@@ -148,7 +148,7 @@ export async function extractAudio(
       throw new FFmpegError(`无效的参数: ${error.message}`)
     }
 
-    const args = buildFFmpegArgs(videoPath, '', options)
+    const args = buildFFmpegArgs(filePath, '', options)
     throw new FFmpegError(`FFmpeg 转换失败: ${error.message}`, args.join(' '))
   }
 }

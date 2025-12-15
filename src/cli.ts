@@ -4,7 +4,7 @@ import { intro } from '@clack/prompts'
 import ansis from 'ansis'
 import { defineCommand, runMain } from 'citty'
 
-import { base64, restore, v2a } from './commands'
+import { base64, restore, v2a, encrypt, decrypt } from './commands'
 import { CLI_ALIAS, CLI_NAME, CLI_VERSION } from './config/defaults'
 import { logger } from './utils/logger'
 import { select } from './utils/prompts'
@@ -13,7 +13,9 @@ import { select } from './utils/prompts'
 const COMMAND_MAP = {
   base64,
   restore,
-  'video-to-audio': v2a
+  'video-to-audio': v2a,
+  encrypt,
+  decrypt
 } as const
 
 // 交互选项配置
@@ -32,6 +34,16 @@ const INTERACTIVE_OPTIONS = [
     value: 'video-to-audio',
     label: ansis.magenta('🎵 视频提取音频'),
     hint: '从视频中提取音频轨道'
+  },
+  {
+    value: 'encrypt',
+    label: ansis.red('🔐 文件加密'),
+    hint: '加密文件并生成 JSON 归档'
+  },
+  {
+    value: 'decrypt',
+    label: ansis.green('🔓 文件解密'),
+    hint: '从 JSON 归档解密还原文件'
   }
 ]
 
@@ -64,7 +76,7 @@ function showVersion() {
 `)
   )
   console.log(ansis.bold('  多功能文件工具箱\n'))
-  console.log(ansis.gray('  🔄 Base64 互转    🎧 音频提取\n'))
+  console.log(ansis.gray('  🔄 Base64 互转    🎧 音频提取    🔐 文件加密\n'))
 }
 
 /**
@@ -82,14 +94,21 @@ function showHelp() {
   console.log(`  ${CLI_ALIAS} -h, --help              显示帮助信息（默认）\n`)
 
   console.log(ansis.bold('命令:'))
-  console.log(`  ${ansis.cyan('base64')}                      文件转 Base64`)
-  console.log(`  ${ansis.green('restore')}                     Base64 还原文件`)
-  console.log(`  ${ansis.magenta('video-to-audio, v2a')}         视频提取音频`)
+  console.log(`  ${ansis.cyan('base64')}                     文件转 Base64`)
+  console.log(`  ${ansis.green('restore')}                   Base64 还原文件`)
+  console.log(`  ${ansis.magenta('video-to-audio, v2a')}     视频提取音频`)
+  console.log(`  ${ansis.cyan('encrypt')}                    加密文件`)
+  console.log(`  ${ansis.green('decrypt')}                   解密文件\n`)
 
   console.log(ansis.bold('示例:'))
-  console.log(`  ${CLI_ALIAS} base64 file.txt         转换文件为 Base64`)
-  console.log(`  ${CLI_ALIAS} v2a video.mp4 -f mp3    提取视频音频为 MP3`)
-  console.log(`  ${CLI_ALIAS} -i                      交互式选择功能\n`)
+  console.log(`  ${CLI_ALIAS} base64 file.txt                转换文件为 Base64`)
+  console.log(`  ${CLI_ALIAS} restore file.json              还原 Base64 文件`)
+  console.log(
+    `  ${CLI_ALIAS} v2a video.mp4 -f mp3           提取视频音频为 MP3`
+  )
+  console.log(`  ${CLI_ALIAS} encrypt secret.txt -p pwd      加密文件`)
+  console.log(`  ${CLI_ALIAS} decrypt secret.json -p pwd     解密文件`)
+  console.log(`  ${CLI_ALIAS} -i                             交互式选择功能\n`)
 }
 
 /**
@@ -138,7 +157,9 @@ const main = defineCommand({
     base64: () => base64,
     restore: () => restore,
     'video-to-audio': () => v2a,
-    v2a: () => v2a
+    v2a: () => v2a,
+    encrypt,
+    decrypt
   },
 
   // 默认行为

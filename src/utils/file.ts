@@ -1,5 +1,6 @@
 import { accessSync, mkdirSync, statSync } from 'node:fs'
 import path from 'node:path'
+import { Buffer } from 'node:buffer'
 
 /**
  * 检查文件是否存在
@@ -93,3 +94,13 @@ export function validateExtension(
     : expectedExt
   return ext === expected.toLowerCase()
 }
+
+/**
+ * 将 Buffer 转换为 Base64 字符串
+ */
+export const bufferToBase64 = (data: Buffer) => data.toString('base64')
+
+/**
+ * 将 Base64 字符串转换为 Buffer
+ */
+export const base64ToBuffer = (data: string) => Buffer.from(data, 'base64')

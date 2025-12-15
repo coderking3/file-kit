@@ -1,11 +1,16 @@
 import type { Base64ArchiveData } from '#/types'
 
-import { Buffer } from 'node:buffer'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import { ConversionError, FileError, ValidationError } from '#/utils/errors'
-import { ensureDir, getFileExt, getFileName } from '#/utils/file'
+import {
+  base64ToBuffer,
+  bufferToBase64,
+  ensureDir,
+  getFileExt,
+  getFileName
+} from '#/utils/file'
 import { nowUTC8 } from '#/utils/time'
 
 /**
@@ -28,7 +33,7 @@ export async function fileToBase64(
 
     // 读取文件
     const buffer = await fs.readFile(filePath)
-    const base64 = buffer.toString('base64')
+    const base64 = bufferToBase64(buffer)
     const fileName = getFileName(filePath)
     const fileExt = getFileExt(filePath)
 
@@ -84,9 +89,11 @@ export async function base64ToFile(
   try {
     ensureDir(outputDir)
 
+    const { file } = archiveData
+
     // 解码 Base64
-    const buffer = Buffer.from(archiveData.file.base64, 'base64')
-    const outputPath = path.join(outputDir, archiveData.file.name)
+    const buffer = base64ToBuffer(file.base64)
+    const outputPath = path.join(outputDir, file.name)
 
     // 写入文件
     await fs.writeFile(outputPath, buffer)
@@ -102,45 +109,5 @@ export async function base64ToFile(
       `Base64 还原失败: ${error.message}`,
       'base64ToFile'
     )
-  }
-}
-
-/**
- * 从文件加载归档数据
- */
-export async function loadArchive(
-  filePath: string
-): Promise<Base64ArchiveData> {
-  if (!filePath) {
-    throw new ValidationError('文件路径不能为空', 'filePath')
-  }
-
-  try {
-    const content = await fs.readFile(filePath, 'utf-8')
-    const data = JSON.parse(content) as Base64ArchiveData
-
-    // 验证数据格式
-    if (data.type !== 'base64') {
-      throw new ValidationError(
-        '不是有效的 Base64 归档文件',
-        'archiveData.type'
-      )
-    }
-    if (!data.file?.base64) {
-      throw new ValidationError('归档文件缺少 base64 数据', 'archiveData.file')
-    }
-
-    return data
-  } catch (error: any) {
-    if (error instanceof ValidationError) {
-      throw error
-    }
-    if (error.code === 'ENOENT') {
-      throw new FileError(`归档文件不存在: ${filePath}`, filePath)
-    }
-    if (error instanceof SyntaxError) {
-      throw new ValidationError('归档文件 JSON 格式错误', 'json')
-    }
-    throw new ConversionError(`加载归档失败: ${error.message}`, 'loadArchive')
   }
 }
