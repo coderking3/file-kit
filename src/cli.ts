@@ -35,6 +35,38 @@ const INTERACTIVE_OPTIONS = [
   }
 ]
 
+const cliArgs = {
+  help: false,
+  version: false
+}
+
+function preprocessArgs(rawArgs: string[]) {
+  cliArgs.help = rawArgs.some((arg) => arg === '--help' || arg === '-h')
+  cliArgs.version = rawArgs.some((arg) => arg === '--version' || arg === '-v')
+
+  if (cliArgs.help) {
+    const excludeHelpArgs = rawArgs.filter(
+      (arg) => arg !== '--help' && arg !== '-h'
+    )
+    process.argv = excludeHelpArgs
+  }
+}
+
+/**
+ * 显示版本信息
+ */
+function showVersion() {
+  console.log(
+    ansis.cyan(`
+  ╭──────────────────────────╮
+  │   🔧 ${ansis.bold(CLI_NAME)} · ${ansis.dim(`v${CLI_VERSION}`.padEnd(9))}│
+  ╰──────────────────────────╯
+`)
+  )
+  console.log(ansis.bold('  多功能文件工具箱\n'))
+  console.log(ansis.gray('  🔄 Base64 互转    🎧 音频提取\n'))
+}
+
 /**
  * 显示帮助信息
  */
@@ -46,7 +78,8 @@ function showHelp() {
   console.log(ansis.bold('用法:'))
   console.log(`  ${CLI_ALIAS} <command> [options]     执行指定命令`)
   console.log(`  ${CLI_ALIAS} -i, --interactive       进入交互模式`)
-  console.log(`  ${CLI_ALIAS}                         显示帮助信息（默认）\n`)
+  console.log(`  ${CLI_ALIAS} -v, --version           显示版本信息`)
+  console.log(`  ${CLI_ALIAS} -h, --help              显示帮助信息（默认）\n`)
 
   console.log(ansis.bold('命令:'))
   console.log(`  ${ansis.cyan('base64')}                      文件转 Base64`)
@@ -97,12 +130,6 @@ const main = defineCommand({
       alias: 'i',
       description: '进入交互模式',
       default: false
-    },
-    help: {
-      type: 'boolean',
-      alias: 'h',
-      description: '查看帮助列表',
-      default: false
     }
   },
 
@@ -120,11 +147,17 @@ const main = defineCommand({
       await runInteractiveMode()
     }
 
-    if (args.help || rawArgs.length === 0) {
+    if (cliArgs.version) {
+      showVersion()
+      process.exit(0)
+    }
+
+    if (cliArgs.help || rawArgs.length === 0) {
       showHelp()
       process.exit(0)
     }
   }
 })
 
+preprocessArgs(process.argv)
 runMain(main)
