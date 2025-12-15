@@ -1,9 +1,14 @@
+import type { DecryptCommandArgs } from '#/types'
+
+import path from 'node:path'
+
+import { cyan } from 'ansis'
 import { defineCommand } from 'citty'
-import * as clack from '@clack/prompts'
-import ansis from 'ansis'
-import { CryptoConverter } from '../core/crypto-converter'
-import { handleError } from '../utils/errors'
-import { validateFilePath } from '../utils/file'
+
+import { createCommandContext, getPassword, loadArchive } from '#/utils/helpers'
+
+import { decrypt } from '../core/crypto'
+import { tryCatch } from '../utils/errors'
 
 export default defineCommand({
   meta: {
@@ -13,7 +18,7 @@ export default defineCommand({
   args: {
     input: {
       type: 'positional',
-      description: '加密文件路径 (.encrypted.json)',
+      description: '加密文件 (*.crypto.json)',
       required: true
     },
     output: {
@@ -27,47 +32,38 @@ export default defineCommand({
       description: '解密密码'
     }
   },
-  async run({ args }) {
-    const spinner = clack.spinner()
+  async run({ args, rawArgs }) {
+    const typedArgs = args as unknown as DecryptCommandArgs
+    const ctx = createCommandContext(rawArgs)
+    ctx.showIntro()
 
-    try {
-      // 验证输入文件
-      await validateFilePath(args.input)
+    tryCatch(async () => {
+      // 获取输入路径
+      const inputPath = await ctx.getInput(typedArgs.input, {
+        message: '请输入文件路径',
+        placeholder: '*.crypto.json',
+        validateExtension: '.crypto.json'
+      })
 
-      // 获取密码
-      let password = args.password
+      // 获取输出目录
+      const outputDir = await ctx.getOutput(typedArgs.output, {
+        defaultDir: path.dirname(inputPath)
+      })
 
-      if (!password) {
-        const passwordInput = await clack.password({
-          message: '请输入解密密码:',
-          validate: (value) => {
-            if (!value) return '密码不能为空'
-          }
-        })
-
-        if (clack.isCancel(passwordInput)) {
-          clack.cancel('操作已取消')
-          process.exit(0)
-        }
-
-        password = passwordInput as string
-      }
+      // 加密密钥
+      const password = await getPassword(typedArgs.password)
 
       // 开始解密
-      spinner.start('正在解密文件...')
+      const loading = ctx.loading('正在解密')
 
-      const converter = new CryptoConverter()
-      const outputPath = await converter.decrypt({
-        input: args.input,
-        output: args.output,
+      const archiveData = await loadArchive(inputPath, 'crypto')
+      const outputPath = await decrypt(archiveData, outputDir, {
         password
       })
 
-      spinner.stop(ansis.green('✔ 文件已解密'))
-      clack.note(ansis.cyan(outputPath), '输出路径')
-    } catch (error) {
-      spinner.stop(ansis.red('✖ 解密失败'))
-      handleError(error)
-    }
+      loading.close(`文件已解密到: ${cyan(outputPath)}}`)
+
+      ctx.showOutro('🔓 解密完成')
+    })
   }
 })

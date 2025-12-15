@@ -1,6 +1,6 @@
+import { Buffer } from 'node:buffer'
 import { accessSync, mkdirSync, statSync } from 'node:fs'
 import path from 'node:path'
-import { Buffer } from 'node:buffer'
 
 /**
  * 检查文件是否存在
@@ -88,11 +88,11 @@ export function validateExtension(
   filePath: string,
   expectedExt: string
 ): boolean {
-  const ext = getFileExt(filePath, { withDot: false })
-  const expected = expectedExt.startsWith('.')
-    ? expectedExt.slice(1)
-    : expectedExt
-  return ext === expected.toLowerCase()
+  const fileName = getFileName(filePath)
+
+  const normalizedExt = expectedExt.toLowerCase().replace(/^\./, '')
+
+  return fileName.endsWith(`.${normalizedExt}`)
 }
 
 /**

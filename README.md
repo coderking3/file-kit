@@ -1,6 +1,6 @@
 # @king3/file-kit
 
-> FileKit — 多功能文件工具箱（Base64 转换 · 视频转音频）
+> FileKit — 多功能文件工具箱（Base64 转换 · 视频转音频 · 文件加密/解密）
 
 [![npm version](https://img.shields.io/npm/v/@king3/file-kit.svg)](https://www.npmjs.com/package/@king3/file-kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,6 +9,7 @@
 
 - 📄 **Base64 转换**：文件 ↔ Base64 JSON，支持还原恢复
 - 🎵 **视频转音频**：支持多种格式，从视频文件提取音频 (mp3 / m4a / flac / wav / alac)
+- 🔐 **文件加密/解密**：提供 安全、可恢复的文件加密与解密能力，适用于敏感文件存储、传输或备份场景。
 
 ## 📦 安装
 
@@ -19,11 +20,6 @@ pnpm install @king-3/file-kit -g
 # or
 npm install @king-3/file-kit -g
 ```
-
-### 要求
-
-- Node.js >= 20.0.0
-- FFmpeg（视频转音频功能需要）
 
 ## 🚀 快速开始
 

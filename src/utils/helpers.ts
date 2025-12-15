@@ -1,16 +1,28 @@
-import path from 'node:path'
+import type { Base64ArchiveData, CryptoArchiveData } from '#/types'
+
 import fs from 'node:fs/promises'
+import path from 'node:path'
 import process from 'node:process'
 
-import { intro, outro } from '@clack/prompts'
+import { intro, outro, spinner } from '@clack/prompts'
 import { bold, cyan } from 'ansis'
 
 import { CLI_NAME } from '#/config/defaults'
 import { fileExists, getFileName, validateExtension } from '#/utils/file'
 import { logger } from '#/utils/logger'
-import { confirm, text } from '#/utils/prompts'
-import { Base64ArchiveData, CryptoArchiveData } from '#/types'
+import { confirm, password, text } from '#/utils/prompts'
+
 import { AppError, FileError, ValidationError } from './errors'
+
+/**
+ * Loading 加载器接口
+ */
+export interface LoadingSpinner {
+  /** 更新加载消息 */
+  update: (message: string) => void
+  /** 关闭加载器 */
+  close: (message?: string) => void
+}
 
 /**
  * 命令执行上下文
@@ -19,6 +31,9 @@ export interface CommandContext {
   isInteractive: boolean
   showIntro: () => void
   showOutro: (message: string) => void
+  getInput: typeof getInputPath
+  getOutput: typeof getOutputDir
+  loading: (initialMessage?: string) => LoadingSpinner
 }
 
 /**
@@ -34,6 +49,17 @@ export function createCommandContext(rawArgs: string[]): CommandContext {
     },
     showOutro: (message: string) => {
       outro(bold.green(message))
+    },
+    getInput: getInputPath,
+    getOutput: getOutputDir,
+    loading: (initialMessage?: string) => {
+      const s = spinner()
+      s.start(initialMessage)
+
+      return {
+        update: (message) => s.message(message),
+        close: (message) => s.stop(message)
+      }
     }
   }
 }
@@ -94,6 +120,33 @@ export async function getInputPath(
   return inputPath
 }
 
+export async function getPassword(providedPwd: string) {
+  let userPwd = providedPwd
+
+  if (!userPwd) {
+    userPwd = await password({
+      message: '请输入加密密码:',
+      validate: (value) => {
+        if (!value) return '密码不能为空'
+        if (value.length < 6) return '密码长度至少 6 位'
+      }
+    })
+
+    // 确认密码
+    await password({
+      message: '请再次输入密码:',
+      validate: (value) => {
+        if (value !== userPwd) return '两次密码不一致'
+      }
+    })
+  } else if (typeof userPwd === 'string' && userPwd.length < 6) {
+    logger.error(`'密码长度至少 6 位'`)
+    process.exit(1)
+  }
+
+  return userPwd
+}
+
 /**
  * 输出目录配置选项
  */
@@ -137,25 +190,26 @@ export function buildOutputPath(
   return path.join(outputDir, fileName)
 }
 
-export interface LoadArchiveData {
-  /**
-   * 加载 Base64 归档
-   */
-  (filePath: string, type: 'base64'): Promise<Base64ArchiveData>
-
-  /**
-   * 加载加密归档
-   */
-  (filePath: string, type: 'crypto'): Promise<CryptoArchiveData>
-}
+/**
+ * 从文件加载归档数据
+ */
+export function loadArchive(
+  filePath: string,
+  type: 'base64'
+): Promise<Base64ArchiveData>
 
 /**
  * 从文件加载归档数据
  */
-export const loadArchive: LoadArchiveData = async (
+export function loadArchive(
+  filePath: string,
+  type: 'crypto'
+): Promise<CryptoArchiveData>
+
+export async function loadArchive(
   filePath: string,
   type: 'base64' | 'crypto'
-): Promise<Base64ArchiveData | CryptoArchiveData> => {
+): Promise<Base64ArchiveData | CryptoArchiveData> {
   if (!filePath) {
     throw new ValidationError('文件路径不能为空', 'filePath')
   }

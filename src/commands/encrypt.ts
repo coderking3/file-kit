@@ -1,9 +1,19 @@
+import type { EncryptCommandArgs } from '#/types'
+
+import path from 'node:path/posix'
+
+import { bold, cyan, gray, yellow } from 'ansis'
 import { defineCommand } from 'citty'
-import * as clack from '@clack/prompts'
-import ansis from 'ansis'
-import { CryptoConverter } from '../core/crypto-converter'
-import { handleError } from '../utils/errors'
-import { validateFilePath } from '../utils/file'
+
+import {
+  buildOutputPath,
+  createCommandContext,
+  getPassword
+} from '#/utils/helpers'
+import { logger } from '#/utils/logger'
+
+import { encrypt } from '../core/crypto'
+import { tryCatch } from '../utils/errors'
 
 export default defineCommand({
   meta: {
@@ -13,7 +23,7 @@ export default defineCommand({
   args: {
     input: {
       type: 'positional',
-      description: '输入文件路径',
+      description: '文件路径',
       required: true
     },
     output: {
@@ -24,66 +34,46 @@ export default defineCommand({
     password: {
       type: 'string',
       alias: 'p',
-      description: '加密密码'
+      description: '加密密钥'
     }
   },
-  async run({ args }) {
-    const spinner = clack.spinner()
+  async run({ args, rawArgs }) {
+    const typedArgs = args as unknown as EncryptCommandArgs
+    const ctx = createCommandContext(rawArgs)
+    ctx.showIntro()
 
-    try {
-      // 验证输入文件
-      await validateFilePath(args.input)
+    tryCatch(async () => {
+      // 获取输入路径
+      const inputPath = await ctx.getInput(typedArgs.input, {
+        message: '请输入文件路径',
+        placeholder: 'file.txt'
+      })
 
-      // 获取密码
-      let password = args.password
+      // 获取输出目录
+      const outputDir = await ctx.getOutput(typedArgs.output, {
+        defaultDir: path.dirname(inputPath)
+      })
 
-      if (!password) {
-        const passwordInput = await clack.password({
-          message: '请输入加密密码:',
-          validate: (value) => {
-            if (!value) return '密码不能为空'
-            if (value.length < 6) return '密码长度至少 6 位'
-          }
-        })
+      // 加密密钥
+      const password = await getPassword(typedArgs.password)
 
-        if (clack.isCancel(passwordInput)) {
-          clack.cancel('操作已取消')
-          process.exit(0)
-        }
+      console.log(gray('│'))
+      logger.warn(yellow('请妥善保管密码，丢失后无法恢复文件！'))
 
-        password = passwordInput as string
+      // 构建输出路径
+      const outputPath = buildOutputPath(inputPath, outputDir, 'crypto.json')
 
-        // 确认密码
-        const confirmPassword = await clack.password({
-          message: '请再次输入密码:',
-          validate: (value) => {
-            if (value !== password) return '两次密码不一致'
-          }
-        })
-
-        if (clack.isCancel(confirmPassword)) {
-          clack.cancel('操作已取消')
-          process.exit(0)
-        }
-      }
-
-      // 开始加密
-      spinner.start('正在加密文件...')
-
-      const converter = new CryptoConverter()
-      const outputPath = await converter.encrypt({
-        input: args.input,
-        output: args.output,
+      // 执行转换
+      const loading = ctx.loading('正在加密')
+      const archiveData = await encrypt(inputPath, outputPath, {
         password
       })
 
-      spinner.stop(ansis.green('✔ 文件已加密'))
-      clack.note(ansis.cyan(outputPath), '输出路径')
+      loading.close(
+        `文件已加密到: ${cyan(outputPath)}, 共计 ${bold.gray((archiveData.file.size / 1024).toFixed(2))} KB`
+      )
 
-      console.log(ansis.yellow('\n⚠️  请妥善保管密码，丢失后无法恢复文件！'))
-    } catch (error) {
-      spinner.stop(ansis.red('✖ 加密失败'))
-      handleError(error)
-    }
+      ctx.showOutro('🔐 加密完成')
+    })
   }
 })

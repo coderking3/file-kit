@@ -1,13 +1,18 @@
+import type { CryptoArchiveData, CryptoOptions } from '#/types'
+
+import { Buffer } from 'node:buffer'
 import {
   createCipheriv,
   createDecipheriv,
-  randomBytes,
-  pbkdf2Sync
+  pbkdf2Sync,
+  randomBytes
 } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { nowUTC8 } from '../utils/time'
-import { Buffer } from 'node:buffer'
+
+import { CRYPTO_ALGORITHM } from '#/config/crypto-algorithm'
+import { CryptoError, FileError, ValidationError } from '#/utils/errors'
+
 import {
   base64ToBuffer,
   bufferToBase64,
@@ -15,9 +20,7 @@ import {
   getFileExt,
   getFileName
 } from '../utils/file'
-import type { CryptoOptions, CryptoArchiveData } from '#/types'
-import { CryptoError, FileError, ValidationError } from '#/utils/errors'
-import { CRYPTO_ALGORITHM } from '#/config/crypto-algorithm'
+import { nowUTC8 } from '../utils/time'
 
 /**
  * 从密码派生密钥
@@ -139,7 +142,7 @@ export async function decrypt(
     let decrypted: Buffer
     try {
       decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()])
-    } catch (error) {
+    } catch {
       throw new Error('解密失败：密码错误或文件已损坏')
     }
 

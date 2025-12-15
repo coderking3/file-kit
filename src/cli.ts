@@ -4,7 +4,7 @@ import { intro } from '@clack/prompts'
 import ansis from 'ansis'
 import { defineCommand, runMain } from 'citty'
 
-import { base64, restore, v2a, encrypt, decrypt } from './commands'
+import { base64, decrypt, encrypt, restore, v2a } from './commands'
 import { CLI_ALIAS, CLI_NAME, CLI_VERSION } from './config/defaults'
 import { logger } from './utils/logger'
 import { select } from './utils/prompts'
@@ -28,7 +28,7 @@ const INTERACTIVE_OPTIONS = [
   {
     value: 'restore',
     label: ansis.green('🔄 Base64 还原文件'),
-    hint: '从 JSON 归档恢复原始文件'
+    hint: '从 Base64 JSON 恢复原始文件'
   },
   {
     value: 'video-to-audio',
@@ -38,12 +38,12 @@ const INTERACTIVE_OPTIONS = [
   {
     value: 'encrypt',
     label: ansis.red('🔐 文件加密'),
-    hint: '加密文件并生成 JSON 归档'
+    hint: '加密文件并生成 Crypto JSON'
   },
   {
     value: 'decrypt',
     label: ansis.green('🔓 文件解密'),
-    hint: '从 JSON 归档解密还原文件'
+    hint: '从 Crypto JSON 解密还原文件'
   }
 ]
 
@@ -94,11 +94,11 @@ function showHelp() {
   console.log(`  ${CLI_ALIAS} -h, --help              显示帮助信息（默认）\n`)
 
   console.log(ansis.bold('命令:'))
-  console.log(`  ${ansis.cyan('base64')}                     文件转 Base64`)
-  console.log(`  ${ansis.green('restore')}                   Base64 还原文件`)
-  console.log(`  ${ansis.magenta('video-to-audio, v2a')}     视频提取音频`)
-  console.log(`  ${ansis.cyan('encrypt')}                    加密文件`)
-  console.log(`  ${ansis.green('decrypt')}                   解密文件\n`)
+  console.log(`  ${ansis.cyan('base64')}                      文件转 Base64`)
+  console.log(`  ${ansis.green('restore')}                     Base64 还原文件`)
+  console.log(`  ${ansis.magenta('video-to-audio, v2a')}         视频提取音频`)
+  console.log(`  ${ansis.red('encrypt')}                     加密文件`)
+  console.log(`  ${ansis.green('decrypt')}                     解密文件\n`)
 
   console.log(ansis.bold('示例:'))
   console.log(`  ${CLI_ALIAS} base64 file.txt                转换文件为 Base64`)

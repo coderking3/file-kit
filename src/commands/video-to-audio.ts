@@ -7,7 +7,6 @@ import type {
 import path from 'node:path'
 import process from 'node:process'
 
-import { spinner } from '@clack/prompts'
 import { cyan } from 'ansis'
 import { defineCommand } from 'citty'
 
@@ -15,12 +14,7 @@ import { AUDIO_FORMATS } from '#/config/audio-formats'
 import { DEFAULT_CONFIG } from '#/config/defaults'
 import { extractAudio } from '#/core/extract'
 import { tryCatch } from '#/utils/errors'
-import {
-  buildOutputPath,
-  createCommandContext,
-  getInputPath,
-  getOutputDir
-} from '#/utils/helpers'
+import { buildOutputPath, createCommandContext } from '#/utils/helpers'
 import { logger } from '#/utils/logger'
 import { select } from '#/utils/prompts'
 
@@ -64,7 +58,7 @@ export default defineCommand({
     output: {
       type: 'string',
       alias: 'o',
-      description: '输出文件目录'
+      description: '输出目录'
     },
     format: {
       type: 'string',
@@ -82,15 +76,15 @@ export default defineCommand({
     const ctx = createCommandContext(rawArgs)
     ctx.showIntro()
 
-    await tryCatch(async () => {
+    tryCatch(async () => {
       // 获取输入文件路径
-      const inputPath = await getInputPath(typedArgs.input, {
+      const inputPath = await ctx.getInput(typedArgs.input, {
         message: '请输入视频文件路径',
         placeholder: 'video.mp4'
       })
 
       // 获取输出目录
-      const outputDir = await getOutputDir(typedArgs.output, {
+      const outputDir = await ctx.getOutput(typedArgs.output, {
         defaultDir: path.dirname(inputPath)
       })
 
@@ -133,21 +127,20 @@ export default defineCommand({
       )
 
       // 开始转换
-      const s = spinner()
-      s.start('正在提取音频 0%')
+      const loading = ctx.loading('正在提取音频 0%')
 
       await extractAudio(
         inputPath,
         outputPath,
         { format, quality },
         (percent) => {
-          s.message(`正在提取音频 ${percent}%`)
+          loading.update(`正在提取音频 ${percent}%`)
         }
       )
 
-      s.stop(`音频已提取到: ${cyan(outputPath)}`)
+      loading.close(`音频已提取到: ${cyan(outputPath)}`)
 
-      ctx.showOutro('🎉 提取完成')
+      ctx.showOutro('🎵 提取完成')
     })
   }
 })
