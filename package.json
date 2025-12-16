@@ -39,7 +39,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "cli": "node bin/cli.js",
+    "fkt": "node bin/cli.js",
     "dev": "tsx src/cli.ts",
     "build": "tsx scripts/build.ts",
     "format": "prettier --write .",
