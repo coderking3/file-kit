@@ -35,7 +35,8 @@
     "fkt": "./bin/cli.mjs"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
     "dev": "tsx src/cli.ts",
