@@ -84,31 +84,59 @@ function showVersion() {
  */
 function showHelp() {
   console.log(
-    `${ansis.bold.cyan(`🔧 ${CLI_NAME}`)}${ansis.dim(` - 多功能文件工具箱 (${CLI_ALIAS} v${CLI_VERSION})`)}\n`
+    `${ansis.bold(`🔧 ${CLI_NAME}`)}${ansis.dim(` - 多功能文件工具箱 (${CLI_ALIAS} v${CLI_VERSION})`)}\n`
   )
 
   console.log(ansis.bold('用法:'))
-  console.log(`  ${CLI_ALIAS} <command> [options]     执行指定命令`)
-  console.log(`  ${CLI_ALIAS} -i, --interactive       进入交互模式`)
-  console.log(`  ${CLI_ALIAS} -v, --version           显示版本信息`)
-  console.log(`  ${CLI_ALIAS} -h, --help              显示帮助信息（默认）\n`)
+  console.log(
+    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.dim('<command> [options]')}     执行指定命令`
+  )
+  console.log(
+    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('-i, --interactive')}       进入交互模式`
+  )
+  console.log(
+    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('-v, --version')}           显示版本信息`
+  )
+  console.log(
+    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('-h, --help')}              显示帮助信息${ansis.dim('（默认）')}\n`
+  )
 
   console.log(ansis.bold('命令:'))
-  console.log(`  ${ansis.cyan('base64')}                      文件转 Base64`)
-  console.log(`  ${ansis.green('restore')}                     Base64 还原文件`)
-  console.log(`  ${ansis.magenta('video-to-audio, v2a')}         视频提取音频`)
-  console.log(`  ${ansis.red('encrypt')}                     加密文件`)
-  console.log(`  ${ansis.green('decrypt')}                     解密文件\n`)
+  console.log(
+    `  ${ansis.cyan('base64')}${ansis.dim('                      文件转 Base64')}`
+  )
+  console.log(
+    `  ${ansis.green('restore')}${ansis.dim('                     Base64 还原文件')}`
+  )
+  console.log(
+    `  ${ansis.magenta('video-to-audio, v2a')}${ansis.dim('         视频提取音频')}`
+  )
+  console.log(
+    `  ${ansis.red('encrypt')}${ansis.dim('                     加密文件')}`
+  )
+  console.log(
+    `  ${ansis.green('decrypt')}${ansis.dim('                     解密文件')}\n`
+  )
 
   console.log(ansis.bold('示例:'))
-  console.log(`  ${CLI_ALIAS} base64 file.txt                转换文件为 Base64`)
-  console.log(`  ${CLI_ALIAS} restore file.json              还原 Base64 文件`)
   console.log(
-    `  ${CLI_ALIAS} v2a video.mp4 -f mp3           提取视频音频为 MP3`
+    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('base64')} ${ansis.green('file.txt')}                ${ansis.dim('转换文件为 Base64')}`
   )
-  console.log(`  ${CLI_ALIAS} encrypt secret.txt -p pwd      加密文件`)
-  console.log(`  ${CLI_ALIAS} decrypt secret.json -p pwd     解密文件`)
-  console.log(`  ${CLI_ALIAS} -i                             交互式选择功能\n`)
+  console.log(
+    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('restore')} ${ansis.green('file.json')}              ${ansis.dim('还原 Base64 文件')}`
+  )
+  console.log(
+    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('v2a')} ${ansis.green('video.mp4')} ${ansis.blue('-f mp3')}           ${ansis.dim('提取视频音频为 MP3')}`
+  )
+  console.log(
+    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('encrypt')} ${ansis.green('secret.txt')} ${ansis.blue('-p pwd')}      ${ansis.dim('加密文件')}`
+  )
+  console.log(
+    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('decrypt')} ${ansis.green('secret.json')} ${ansis.blue('-p pwd')}     ${ansis.dim('解密文件')}`
+  )
+  console.log(
+    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('-i')}                             ${ansis.dim('交互式选择功能')}\n`
+  )
 }
 
 /**
@@ -138,9 +166,9 @@ async function runInteractiveMode() {
 
 const main = defineCommand({
   meta: {
-    name: 'cvt',
+    name: 'fkt',
     version: '2.0.0',
-    description: '🔧 Converter Kit - 现代化文件转换工具'
+    description: `🔧 ${CLI_NAME} - 多功能文件工具箱`
   },
 
   args: {
