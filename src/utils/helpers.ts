@@ -15,25 +15,15 @@ import { confirm, password, text } from '#/utils/prompts'
 import { AppError, FileError, ValidationError } from './errors'
 
 /**
- * Loading 加载器接口
- */
-export interface LoadingSpinner {
-  /** 更新加载消息 */
-  update: (message: string) => void
-  /** 关闭加载器 */
-  close: (message?: string) => void
-}
-
-/**
  * 命令执行上下文
  */
 export interface CommandContext {
   isInteractive: boolean
   showIntro: () => void
-  showOutro: (message: string) => void
+  showOutro: typeof showOutro
   getInput: typeof getInputPath
   getOutput: typeof getOutputDir
-  loading: (initialMessage?: string) => LoadingSpinner
+  loading: typeof loading
 }
 
 /**
@@ -44,24 +34,46 @@ export function createCommandContext(rawArgs: string[]): CommandContext {
 
   return {
     isInteractive,
-    showIntro: () => {
-      if (!isInteractive) intro(bold.cyan(`🔧 ${CLI_NAME}`))
-    },
-    showOutro: (message: string) => {
-      outro(bold.green(message))
-    },
+    showIntro: () => showIntro(!isInteractive),
+    showOutro,
     getInput: getInputPath,
     getOutput: getOutputDir,
-    loading: (initialMessage?: string) => {
-      const s = spinner()
-      s.start(initialMessage)
-
-      return {
-        update: (message) => s.message(message),
-        close: (message) => s.stop(message)
-      }
-    }
+    loading
   }
+}
+
+/**
+ * Loading 加载器接口
+ */
+export interface LoadingSpinner {
+  /** 更新加载消息 */
+  update: (message: string) => void
+  /** 关闭加载器 */
+  close: (message?: string) => void
+}
+
+/**
+ * Loading 加载器
+ */
+export function loading(initialMessage?: string) {
+  const s = spinner()
+  s.start(initialMessage)
+
+  return {
+    update: (message) => s.message(message),
+    close: (message) => s.stop(message)
+  } as LoadingSpinner
+}
+
+export function showIntro(isShow: boolean) {
+  if (isShow) {
+    console.log('')
+    intro(bold.cyan(`🔧 ${CLI_NAME}`))
+  }
+}
+
+export function showOutro(message: string) {
+  outro(bold.green(message))
 }
 
 /**

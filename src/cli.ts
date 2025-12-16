@@ -1,6 +1,5 @@
 import process from 'node:process'
 
-import { intro } from '@clack/prompts'
 import ansis from 'ansis'
 import { defineCommand, runMain } from 'citty'
 
@@ -8,6 +7,7 @@ import { base64, decrypt, encrypt, restore, v2a } from './commands'
 import { CLI_ALIAS, CLI_NAME, CLI_VERSION } from './config/defaults'
 import { logger } from './utils/logger'
 import { select } from './utils/prompts'
+import { showIntro } from './utils/helpers'
 
 // 命令映射表
 const COMMAND_MAP = {
@@ -84,7 +84,7 @@ function showVersion() {
  */
 function showHelp() {
   console.log(
-    `${ansis.bold(`🔧 ${CLI_NAME}`)}${ansis.dim(` - 多功能文件工具箱 (${CLI_ALIAS} v${CLI_VERSION})`)}\n`
+    `\n${ansis.bold(`🔧 ${CLI_NAME}`)}${ansis.dim(` - 多功能文件工具箱 (${CLI_ALIAS} v${CLI_VERSION})`)}\n`
   )
 
   console.log(ansis.bold('用法:'))
@@ -143,7 +143,7 @@ function showHelp() {
  * 交互模式
  */
 async function runInteractiveMode() {
-  intro(ansis.bold.cyan(`🔧 ${CLI_NAME}`))
+  showIntro(true)
 
   const choice = await select<keyof typeof COMMAND_MAP>({
     message: '选择功能',
