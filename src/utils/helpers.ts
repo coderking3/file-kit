@@ -125,7 +125,7 @@ export async function getPassword(providedPwd: string) {
 
   if (!userPwd) {
     userPwd = await password({
-      message: '请输入加密密码:',
+      message: '请输入密码:',
       validate: (value) => {
         if (!value) return '密码不能为空'
         if (value.length < 6) return '密码长度至少 6 位'

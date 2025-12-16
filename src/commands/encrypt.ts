@@ -34,7 +34,7 @@ export default defineCommand({
     password: {
       type: 'string',
       alias: 'p',
-      description: '加密密钥'
+      description: '加密密码'
     }
   },
   async run({ args, rawArgs }) {
