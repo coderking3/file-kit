@@ -61,7 +61,7 @@ export default defineCommand({
         password
       })
 
-      loading.close(`文件已解密到: ${cyan(outputPath)}}`)
+      loading.close(`文件已解密到: ${cyan(outputPath)}`)
 
       ctx.showOutro('🔓 解密完成')
     })
