@@ -2,7 +2,7 @@
   "name": "file-kit",
   "version": "1.0.0-beta.1",
   "packageManager": "pnpm@10.25.0",
-  "description": "多功能文件工具箱（Base64 转换 · 视频转音频）",
+  "description": "多功能文件工具箱（Base64 转换 · 视频转音频 · 加密/解密）",
   "type": "module",
   "keywords": [
     "file",
