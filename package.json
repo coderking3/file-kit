@@ -1,6 +1,6 @@
 {
   "name": "file-kit",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "packageManager": "pnpm@10.25.0",
   "description": "多功能文件工具箱（Base64 转换 · 视频转音频 · 加密/解密）",
   "type": "module",
@@ -10,9 +10,9 @@
     "video",
     "audio",
     "ffmpeg",
-    "compress",
-    "zip",
-    "fflate"
+    "crypto",
+    "encrypt",
+    "decrypt"
   ],
   "license": "MIT",
   "homepage": "https://github.com/coderking3/file-kit#readme",
@@ -52,9 +52,7 @@
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "ansis": "^4.2.0",
     "citty": "^0.1.6",
-    "execa": "^9.6.1",
-    "fast-glob": "^3.3.3",
-    "fflate": "^0.8.2"
+    "execa": "^9.6.1"
   },
   "devDependencies": {
     "@king-3/eslint-config": "^4.4.0",
