@@ -1,6 +1,6 @@
 {
   "name": "@king-3/file-kit",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "packageManager": "pnpm@10.25.0",
   "description": "多功能文件工具箱（Base64 转换 · 视频转音频 · 加密/解密）",
   "type": "module",
