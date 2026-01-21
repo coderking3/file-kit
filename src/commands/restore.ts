@@ -17,7 +17,7 @@ export default defineCommand({
   args: {
     input: {
       type: 'positional',
-      description: 'Base64 文件 (*.base64.json)'
+      description: 'Base64 文件 (*.base64.txt)'
     },
     output: {
       type: 'string',
@@ -34,8 +34,8 @@ export default defineCommand({
       // 获取输入路径
       const inputPath = await ctx.getInput(typedArgs.input, {
         message: '请输入文件路径',
-        placeholder: '*.base64.json',
-        validateExtension: 'base64.json'
+        placeholder: '*.base64.txt',
+        validateExtension: 'base64.txt'
       })
 
       // 获取输出目录

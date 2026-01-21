@@ -13,12 +13,12 @@ import { tryCatch } from '../utils/errors'
 export default defineCommand({
   meta: {
     name: 'decrypt',
-    description: '解密文件'
+    description: '从 CRYPTO JSON 解密文件'
   },
   args: {
     input: {
       type: 'positional',
-      description: '加密文件 (*.crypto.json)',
+      description: '加密文件 (*.crypto.txt)',
       required: true
     },
     output: {
@@ -41,8 +41,8 @@ export default defineCommand({
       // 获取输入路径
       const inputPath = await ctx.getInput(typedArgs.input, {
         message: '请输入文件路径',
-        placeholder: '*.crypto.json',
-        validateExtension: '.crypto.json'
+        placeholder: '*.crypto.txt',
+        validateExtension: '.crypto.txt'
       })
 
       // 获取输出目录

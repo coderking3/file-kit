@@ -18,7 +18,7 @@ import { tryCatch } from '../utils/errors'
 export default defineCommand({
   meta: {
     name: 'encrypt',
-    description: '加密文件'
+    description: '将文件加密为 CRYPTO JSON 文本'
   },
   args: {
     input: {
@@ -61,7 +61,7 @@ export default defineCommand({
       logger.warn(yellow('请妥善保管密码，丢失后无法恢复文件！'))
 
       // 构建输出路径
-      const outputPath = buildOutputPath(inputPath, outputDir, 'crypto.json')
+      const outputPath = buildOutputPath(inputPath, outputDir, 'crypto.txt')
 
       // 执行转换
       const loading = ctx.loading('正在加密')

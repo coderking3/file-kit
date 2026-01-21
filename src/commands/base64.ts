@@ -12,7 +12,7 @@ import { buildOutputPath, createCommandContext } from '#/utils/helpers'
 export default defineCommand({
   meta: {
     name: 'base64',
-    description: '将文件转换为 Base64 JSON'
+    description: '将文件转换为 Base64 JSON 文本'
   },
   args: {
     input: {
@@ -43,7 +43,7 @@ export default defineCommand({
       })
 
       // 构建输出路径
-      const outputPath = buildOutputPath(inputPath, outputDir, 'base64.json')
+      const outputPath = buildOutputPath(inputPath, outputDir, 'base64.txt')
 
       // 执行转换
       const loading = ctx.loading('正在转换')

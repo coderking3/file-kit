@@ -123,7 +123,7 @@ function showHelp() {
     `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('base64')} ${ansis.green('file.txt')}                ${ansis.dim('转换文件为 Base64')}`
   )
   console.log(
-    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('restore')} ${ansis.green('file.json')}              ${ansis.dim('还原 Base64 文件')}`
+    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('restore')} ${ansis.green('file.base64.txt')}              ${ansis.dim('还原 Base64 文件')}`
   )
   console.log(
     `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('v2a')} ${ansis.green('video.mp4')} ${ansis.blue('-f mp3')}           ${ansis.dim('提取视频音频为 MP3')}`
@@ -132,7 +132,7 @@ function showHelp() {
     `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('encrypt')} ${ansis.green('secret.txt')} ${ansis.blue('-p pwd')}      ${ansis.dim('加密文件')}`
   )
   console.log(
-    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('decrypt')} ${ansis.green('secret.json')} ${ansis.blue('-p pwd')}     ${ansis.dim('解密文件')}`
+    `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('decrypt')} ${ansis.green('secret.crypto.txt')} ${ansis.blue('-p pwd')}     ${ansis.dim('解密文件')}`
   )
   console.log(
     `  ${ansis.yellow(CLI_ALIAS)} ${ansis.cyan('-i')}                             ${ansis.dim('交互式选择功能')}\n`
