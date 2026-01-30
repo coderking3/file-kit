@@ -4,7 +4,7 @@ import type { AudioQuality } from '#/types'
 export const CLI_NAME = 'File Kit' as const
 
 // 版本号
-export const CLI_VERSION = '1.1.0' as const
+export const CLI_VERSION = '1.2.1' as const
 
 // 别名
 export const CLI_ALIAS = 'fkt' as const
