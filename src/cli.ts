@@ -167,7 +167,7 @@ async function runInteractiveMode() {
 const main = defineCommand({
   meta: {
     name: 'fkt',
-    version: '2.0.0',
+    version: CLI_VERSION,
     description: `🔧 ${CLI_NAME} - 多功能文件工具箱`
   },
 
