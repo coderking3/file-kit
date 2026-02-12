@@ -1,0 +1,101 @@
+import { execSync } from 'node:child_process'
+import { readFile, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import process from 'node:process'
+
+import { bold, cyan, green, red, yellow } from 'ansis'
+
+const defaultConfigPath = join(process.cwd(), 'src/config/defaults.ts')
+const packageJsonPath = join(process.cwd(), 'package.json')
+
+// 解析命令行参数
+interface ReleaseOptions {
+  commitTag: boolean // commit + tag
+  push: boolean // push to remote
+}
+
+function parseArgs(): ReleaseOptions {
+  const args = process.argv.slice(2)
+
+  return {
+    commitTag: !args.includes('--no-commit-tag'), // 默认 true
+    push: args.includes('--push') // 默认 false
+  }
+}
+
+/* 
+  Get package.json version
+*/
+async function getPackageVersion(): Promise<string> {
+  const content = await readFile(packageJsonPath, 'utf-8')
+  const pkg = JSON.parse(content)
+  return pkg.version
+}
+
+/* 
+  Update defaultConfigPath CLI_VERSION
+*/
+async function updateVersionConstants(version: string): Promise<void> {
+  const constants = await readFile(defaultConfigPath, 'utf-8')
+  const updated = constants.replace(
+    /CLI_VERSION = '[^']+'/,
+    `CLI_VERSION = '${version}'`
+  )
+  await writeFile(defaultConfigPath, updated, 'utf-8')
+  console.log(`${green('✔')} Updated CLI_VERSION to ${version}`)
+}
+
+/* 
+  Git push commits and tags
+*/
+function gitPush(): void {
+  console.log(bold(yellow('\n📤 Pushing to remote...')))
+  execSync('git push', { stdio: 'inherit' })
+  console.log(`${green('✔')} Pushed commits`)
+
+  execSync('git push --tags', { stdio: 'inherit' })
+  console.log(`${green('✔')} Pushed tags`)
+}
+
+/* 
+  Main release process
+*/
+async function release(): Promise<void> {
+  const options = parseArgs()
+
+  try {
+    console.log(bold(cyan('\n🚀 Starting release script...\n')))
+
+    // Step 1: Bump version
+    console.log(bold(yellow('📦 Bumping version...')))
+    execSync('bumpp --no-push', { stdio: 'inherit' })
+
+    // ✔ Bumped to version 2.1.8
+    // Step 2: Update version constants
+    console.log(bold(yellow('\n🔧 Updating version constants...\n')))
+    const version = await getPackageVersion()
+    await updateVersionConstants(version)
+    console.log()
+
+    // Step 3: Git push (默认禁用)
+    if (options.push) {
+      gitPush()
+    }
+
+    console.log(bold(green('🎉 Release completed successfully!\n')))
+
+    // 提示下一步
+    if (options.commitTag && !options.push) {
+      console.log(yellow('💡 Run with --push to push changes to remote\n'))
+    }
+  } catch (error) {
+    console.error(
+      bold(red('\n❌ Release failed:')),
+      (error as Error).message,
+      '\n'
+    )
+    process.exit(1)
+  }
+}
+
+release()
