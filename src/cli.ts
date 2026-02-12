@@ -5,9 +5,9 @@ import { defineCommand, runMain } from 'citty'
 
 import { base64, decrypt, encrypt, restore, v2a } from './commands'
 import { CLI_ALIAS, CLI_NAME, CLI_VERSION } from './config/defaults'
+import { showIntro } from './utils/helpers'
 import { logger } from './utils/logger'
 import { select } from './utils/prompts'
-import { showIntro } from './utils/helpers'
 
 // 命令映射表
 const COMMAND_MAP = {
