@@ -46,6 +46,22 @@ async function updateVersionConstants(version: string): Promise<void> {
 }
 
 /* 
+  Git commit and tag
+*/
+function gitCommitAndTag(version: string): void {
+  console.log(bold(yellow('\n📝 Committing changes...')))
+  execSync('git add package.json src/config/defaults.ts', { stdio: 'inherit' })
+  execSync(`git commit -m "chore: release v${version}"`, { stdio: 'inherit' })
+  console.log(`${green('✔')} Committed version ${version}`)
+
+  console.log(bold(yellow('\n🏷️  Creating git tag...')))
+  execSync(`git tag -a v${version} -m "Release v${version}"`, {
+    stdio: 'inherit'
+  })
+  console.log(`${green('✔')} Created tag v${version}`)
+}
+
+/* 
   Git push commits and tags
 */
 function gitPush(): void {
@@ -68,26 +84,25 @@ async function release(): Promise<void> {
 
     // Step 1: Bump version
     console.log(bold(yellow('📦 Bumping version...')))
-    execSync('bumpp --no-push', { stdio: 'inherit' })
+    execSync('bumpp --no-commit --no-tag --no-push ', { stdio: 'inherit' })
 
-    // ✔ Bumped to version 2.1.8
     // Step 2: Update version constants
     console.log(bold(yellow('\n🔧 Updating version constants...\n')))
     const version = await getPackageVersion()
     await updateVersionConstants(version)
     console.log()
 
-    // Step 3: Git push (默认禁用)
+    // Step 3: Git commit + tag (默认启用)
+    if (options.commitTag) {
+      gitCommitAndTag(version)
+    }
+
+    // Step 4: Git push (默认禁用)
     if (options.push) {
       gitPush()
     }
 
-    console.log(bold(green('🎉 Release completed successfully!\n')))
-
-    // 提示下一步
-    if (options.commitTag && !options.push) {
-      console.log(yellow('💡 Run with --push to push changes to remote\n'))
-    }
+    console.log(bold(green('\n🎉 Release completed successfully!\n')))
   } catch (error) {
     console.error(
       bold(red('\n❌ Release failed:')),
