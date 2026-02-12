@@ -49,12 +49,12 @@ async function updateVersionConstants(version: string): Promise<void> {
   Git commit and tag
 */
 function gitCommitAndTag(version: string): void {
-  console.log(bold(yellow('\n📝 Committing changes...')))
+  console.log(bold(yellow('📝 Committing changes...\n')))
   execSync('git add package.json src/config/defaults.ts', { stdio: 'inherit' })
   execSync(`git commit -m "chore: release v${version}"`, { stdio: 'inherit' })
   console.log(`${green('✔')} Committed version ${version}`)
 
-  console.log(bold(yellow('\n🏷️  Creating git tag...')))
+  console.log(bold(yellow('\n🏷️  Creating git tag...\n')))
   execSync(`git tag -a v${version} -m "Release v${version}"`, {
     stdio: 'inherit'
   })
