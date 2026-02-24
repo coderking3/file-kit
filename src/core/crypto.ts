@@ -1,14 +1,11 @@
 import type { CryptoArchiveData, CryptoOptions } from '#/types'
 
 import { Buffer } from 'node:buffer'
-import {
-  createCipheriv,
-  createDecipheriv,
-  pbkdf2Sync,
-  randomBytes
-} from 'node:crypto'
+import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+
+import { argon2id, hash } from 'argon2'
 
 import { CRYPTO_ALGORITHM } from '#/config/crypto-algorithm'
 import { CryptoError, FileError, ValidationError } from '#/utils/errors'
@@ -25,8 +22,20 @@ import { nowUTC8 } from '../utils/time'
 /**
  * 从密码派生密钥
  */
-const deriveKey = (password: string, salt: Buffer): Buffer => {
-  return pbkdf2Sync(password, salt, 100000, 32, 'sha256')
+const deriveKey = async (password: string, salt: Buffer): Promise<Buffer> => {
+  const { argon2: argon2Config } = CRYPTO_ALGORITHM
+
+  const result = await hash(password, {
+    type: argon2id,
+    salt,
+    memoryCost: argon2Config.memoryCost,
+    timeCost: argon2Config.timeCost,
+    parallelism: argon2Config.parallelism,
+    hashLength: CRYPTO_ALGORITHM.keyLength,
+    raw: true // 返回原始 Buffer 而不是编码后的字符串
+  })
+
+  return Buffer.from(result)
 }
 
 /**
@@ -58,7 +67,7 @@ export async function encrypt(
     const iv = randomBytes(CRYPTO_ALGORITHM.ivLength)
 
     // 派生密钥
-    const key = deriveKey(options.password, salt)
+    const key = await deriveKey(options.password, salt)
 
     // 创建加密器
     const cipher = createCipheriv(CRYPTO_ALGORITHM.name, key, iv)
@@ -132,7 +141,7 @@ export async function decrypt(
     const encrypted = base64ToBuffer(file.encrypted)
 
     // 派生密钥
-    const key = deriveKey(options.password, salt)
+    const key = await deriveKey(options.password, salt)
 
     // 创建解密器
     const decipher = createDecipheriv(CRYPTO_ALGORITHM.name, key, iv)
