@@ -76,7 +76,7 @@ export default defineCommand({
     const ctx = createCommandContext(rawArgs)
     ctx.showIntro()
 
-    tryCatch(async () => {
+    await tryCatch(async () => {
       // 获取输入文件路径
       const inputPath = await ctx.getInput(typedArgs.input, {
         message: '请输入视频文件路径',

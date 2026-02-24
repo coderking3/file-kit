@@ -132,7 +132,10 @@ export async function getInputPath(
   return inputPath
 }
 
-export async function getPassword(providedPwd: string) {
+export async function getPassword(
+  providedPwd: string,
+  options?: { confirm?: boolean }
+) {
   let userPwd = providedPwd
 
   if (!userPwd) {
@@ -144,15 +147,17 @@ export async function getPassword(providedPwd: string) {
       }
     })
 
-    // 确认密码
-    await password({
-      message: '请再次输入密码:',
-      validate: (value) => {
-        if (value !== userPwd) return '两次密码不一致'
-      }
-    })
+    // 仅在需要时二次确认（加密时传 true，解密时传 false）
+    if (options?.confirm) {
+      await password({
+        message: '请再次输入密码:',
+        validate: (value) => {
+          if (value !== userPwd) return '两次密码不一致'
+        }
+      })
+    }
   } else if (typeof userPwd === 'string' && userPwd.length < 6) {
-    logger.error(`'密码长度至少 6 位'`)
+    logger.error('密码长度至少 6 位')
     process.exit(1)
   }
 

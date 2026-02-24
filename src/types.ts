@@ -37,7 +37,6 @@ export interface AudioFormatConfig {
 }
 
 // ============ 加密/解密相关 ============
-
 export interface CryptoOptions {
   password: string
 }
@@ -63,16 +62,15 @@ export interface BaseCommandArgs {
   output?: string
 }
 
-export interface Base64CommandArgs extends BaseCommandArgs {}
+export type Base64CommandArgs = BaseCommandArgs
+export type RestoreCommandArgs = BaseCommandArgs
 
-export interface RestoreCommandArgs extends BaseCommandArgs {}
 export interface VideoToAudioCommandArgs extends BaseCommandArgs {
   format?: string
   quality?: string
 }
 
 export interface EncryptCommandArgs extends BaseCommandArgs, CryptoOptions {}
-
 export interface DecryptCommandArgs extends BaseCommandArgs, CryptoOptions {}
 
 // ============ 进度回调 ============

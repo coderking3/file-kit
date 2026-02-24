@@ -1,6 +1,15 @@
 // 获取当前UTC+8时间
 export function nowUTC8(): string {
-  const now = new Date()
-  const utc8Time = new Date(now.getTime() + 8 * 60 * 60 * 1000)
-  return utc8Time.toISOString().replace('T', ' ').substring(0, 19)
+  return new Date()
+    .toLocaleString('zh-CN', {
+      timeZone: 'Asia/Shanghai',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    })
+    .replace(/\//g, '-')
 }

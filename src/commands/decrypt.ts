@@ -37,7 +37,7 @@ export default defineCommand({
     const ctx = createCommandContext(rawArgs)
     ctx.showIntro()
 
-    tryCatch(async () => {
+    await tryCatch(async () => {
       // 获取输入路径
       const inputPath = await ctx.getInput(typedArgs.input, {
         message: '请输入文件路径',
@@ -50,8 +50,8 @@ export default defineCommand({
         defaultDir: path.dirname(inputPath)
       })
 
-      // 加密密钥
-      const password = await getPassword(typedArgs.password)
+      // 解密不需要二次确认密码
+      const password = await getPassword(typedArgs.password, { confirm: false })
 
       // 开始解密
       const loading = ctx.loading('正在解密')

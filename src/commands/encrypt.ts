@@ -42,7 +42,7 @@ export default defineCommand({
     const ctx = createCommandContext(rawArgs)
     ctx.showIntro()
 
-    tryCatch(async () => {
+    await tryCatch(async () => {
       // 获取输入路径
       const inputPath = await ctx.getInput(typedArgs.input, {
         message: '请输入文件路径',
@@ -54,8 +54,7 @@ export default defineCommand({
         defaultDir: path.dirname(inputPath)
       })
 
-      // 加密密钥
-      const password = await getPassword(typedArgs.password)
+      const password = await getPassword(typedArgs.password, { confirm: true })
 
       console.log(gray('│'))
       logger.warn(yellow('请妥善保管密码，丢失后无法恢复文件！'))
