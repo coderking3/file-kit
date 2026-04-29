@@ -1,4 +1,8 @@
-import type { Base64ArchiveData, CryptoArchiveData } from '#/types'
+import type {
+  Base64ArchiveData,
+  Base64ChunkedArchiveData,
+  CryptoArchiveData
+} from '#/types'
 
 import fs from 'node:fs/promises'
 import path from 'node:path'
@@ -213,7 +217,7 @@ export function buildOutputPath(
 export function loadArchive(
   filePath: string,
   type: 'base64'
-): Promise<Base64ArchiveData>
+): Promise<Base64ArchiveData | Base64ChunkedArchiveData>
 
 /**
  * 从文件加载归档数据
@@ -226,14 +230,14 @@ export function loadArchive(
 export async function loadArchive(
   filePath: string,
   type: 'base64' | 'crypto'
-): Promise<Base64ArchiveData | CryptoArchiveData> {
+): Promise<Base64ArchiveData | Base64ChunkedArchiveData | CryptoArchiveData> {
   if (!filePath) {
     throw new ValidationError('文件路径不能为空', 'filePath')
   }
 
   try {
     const content = await fs.readFile(filePath, 'utf-8')
-    const data = JSON.parse(content) as Base64ArchiveData | CryptoArchiveData
+    const data = JSON.parse(content)
 
     // 验证归档类型
     if (!data.type || (data.type !== 'base64' && data.type !== 'crypto')) {
@@ -253,6 +257,18 @@ export async function loadArchive(
 
     // 根据类型验证必需字段
     if (type === 'base64') {
+      // 切片格式: 有 chunk 字段
+      if (data.chunk) {
+        const chunked = data as Base64ChunkedArchiveData
+        if (!chunked.chunk?.data) {
+          throw new ValidationError(
+            '切片归档文件缺少 chunk.data',
+            'archiveData.chunk.data'
+          )
+        }
+        return chunked
+      }
+      // 单文件格式: 有 file.base64 字段
       const base64Data = data as Base64ArchiveData
       if (!base64Data.file?.base64) {
         throw new ValidationError(
@@ -292,4 +308,79 @@ export async function loadArchive(
     }
     throw new AppError(`加载归档失败: ${error.message}`, 'loadArchive')
   }
+}
+
+/**
+ * 判断归档数据是否为切片格式
+ */
+export function isChunkedArchive(
+  data: Base64ArchiveData | Base64ChunkedArchiveData
+): data is Base64ChunkedArchiveData {
+  return 'chunk' in data && !('base64' in data.file)
+}
+
+/**
+ * 从任意一个切片文件自动发现同目录下的所有切片
+ */
+export async function discoverChunks(chunkPath: string): Promise<string[]> {
+  const dir = path.dirname(chunkPath)
+  const fileName = getFileName(chunkPath)
+
+  // 从 name.base64.partN.txt 提取 name.base64.part 前缀
+  const match = fileName.match(/^(.+\.base64\.part)\d+(\.txt)$/i)
+  if (!match) {
+    throw new ValidationError(
+      `文件名不符合切片命名规则: ${fileName}`,
+      'chunkPath'
+    )
+  }
+
+  const prefix = match[1].toLowerCase()
+  const suffix = match[2].toLowerCase()
+
+  const files = await fs.readdir(dir)
+  const chunkFiles = files
+    .filter((f) => {
+      const lower = f.toLowerCase()
+      return lower.startsWith(prefix) && lower.endsWith(suffix)
+    })
+    .map((f) => path.join(dir, f))
+
+  return chunkFiles
+}
+
+/**
+ * 加载所有切片归档数据
+ */
+export async function loadChunkedArchive(
+  chunkPaths: string[]
+): Promise<Base64ChunkedArchiveData[]> {
+  const chunks: Base64ChunkedArchiveData[] = []
+
+  for (const p of chunkPaths) {
+    try {
+      const content = await fs.readFile(p, 'utf-8')
+      const data = JSON.parse(content)
+
+      if (data.type !== 'base64' || !data.chunk) {
+        throw new ValidationError(
+          `不是有效的切片归档文件: ${getFileName(p)}`,
+          'chunk'
+        )
+      }
+
+      chunks.push(data as Base64ChunkedArchiveData)
+    } catch (error: any) {
+      if (error instanceof ValidationError) throw error
+      if (error instanceof SyntaxError) {
+        throw new ValidationError(
+          `切片文件 JSON 格式错误: ${getFileName(p)}`,
+          'json'
+        )
+      }
+      throw new FileError(`无法读取切片文件: ${p}`, p)
+    }
+  }
+
+  return chunks
 }

@@ -17,6 +17,20 @@ export interface Base64ArchiveData {
   }
 }
 
+export interface Base64ChunkInfo {
+  index: number
+  total: number
+  hash: string
+  data: string
+}
+
+export interface Base64ChunkedArchiveData {
+  type: 'base64'
+  createdAt: string
+  file: FileInfo
+  chunk: Base64ChunkInfo
+}
+
 // ============ 音频/视频相关 ============
 export type AudioFormat = 'mp3' | 'aac' | 'flac' | 'alac' | 'wav'
 export type AudioQuality = 'low' | 'medium' | 'high'
@@ -62,7 +76,9 @@ export interface BaseCommandArgs {
   output?: string
 }
 
-export type Base64CommandArgs = BaseCommandArgs
+export interface Base64CommandArgs extends BaseCommandArgs {
+  split?: string
+}
 export type RestoreCommandArgs = BaseCommandArgs
 
 export interface VideoToAudioCommandArgs extends BaseCommandArgs {

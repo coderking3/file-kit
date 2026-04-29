@@ -83,16 +83,23 @@ export function getFileName(
 
 /**
  * 验证文件扩展名
+ * 支持 base64.txt 和 base64.partN.txt 格式
  */
 export function validateExtension(
   filePath: string,
   expectedExt: string
 ): boolean {
-  const fileName = getFileName(filePath)
-
+  const fileName = getFileName(filePath).toLowerCase()
   const normalizedExt = expectedExt.toLowerCase().replace(/^\./, '')
 
-  return fileName.endsWith(`.${normalizedExt}`)
+  if (fileName.endsWith(`.${normalizedExt}`)) return true
+
+  // 兼容切片格式: name.base64.partN.txt
+  if (normalizedExt === 'base64.txt') {
+    return /\.base64\.part\d+\.txt$/.test(fileName)
+  }
+
+  return false
 }
 
 /**

@@ -24,6 +24,12 @@ export const DEFAULT_CONFIG = {
   videoToAudio: {
     defaultFormat: 'mp3' as const,
     defaultQuality: 'high' as AudioQuality
+  },
+
+  // 切片配置
+  chunk: {
+    thresholdKB: 1024,
+    defaultSizeKB: 1024
   }
 } as const
 
