@@ -1,9 +1,19 @@
 {
   "name": "@king-3/file-kit",
+  "type": "module",
   "version": "1.5.0-beta.1",
   "packageManager": "pnpm@10.25.0",
   "description": "多功能文件工具箱（Base64 转换 · 视频转音频 · 加密/解密）",
-  "type": "module",
+  "author": "king3 <king3.wm@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/coderking3/file-kit#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coderking3/file-kit"
+  },
+  "bugs": {
+    "url": "https://github.com/coderking3/file-kit/issues"
+  },
   "keywords": [
     "file",
     "base64",
@@ -14,29 +24,22 @@
     "encrypt",
     "decrypt"
   ],
-  "license": "MIT",
-  "homepage": "https://github.com/coderking3/file-kit#readme",
-  "bugs": {
-    "url": "https://github.com/coderking3/file-kit/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/coderking3/file-kit"
-  },
-  "author": "king3 <king3.wm@gmail.com>",
-  "files": [
-    "bin",
-    "dist"
-  ],
   "imports": {
     "#/*": "./src/*"
   },
   "bin": {
     "fkt": "./bin/cli.js"
   },
+  "files": [
+    "bin",
+    "dist"
+  ],
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "scripts": {
     "fkt": "node bin/cli.js",
@@ -58,17 +61,14 @@
     "execa": "^9.6.1"
   },
   "devDependencies": {
-    "@king-3/eslint-config": "^4.4.0",
+    "@king-3/eslint-config": "^6.0.1",
     "@king-3/prettier-config": "^3.4.0",
-    "@types/node": "^20.19.26",
+    "@types/node": "^25.6.0",
     "bumpp": "^10.4.1",
-    "eslint": "^9.39.1",
-    "prettier": "^3.7.4",
-    "tsdown": "^0.18.0",
+    "eslint": "^10.2.1",
+    "prettier": "^3.8.3",
+    "tsdown": "^0.21.10",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
-  },
-  "engines": {
-    "node": ">=20.0.0"
   }
 }
