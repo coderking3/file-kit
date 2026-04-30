@@ -5,6 +5,8 @@ import process from 'node:process'
 
 import { bold, cyan, green, red, yellow } from 'ansis'
 
+const CLI_VERSION_RE = /CLI_VERSION = '[^']+'/
+
 const defaultConfigPath = join(process.cwd(), 'src/config/defaults.ts')
 const packageJsonPath = join(process.cwd(), 'package.json')
 
@@ -38,7 +40,7 @@ async function getPackageVersion(): Promise<string> {
 async function updateVersionConstants(version: string): Promise<void> {
   const constants = await readFile(defaultConfigPath, 'utf-8')
   const updated = constants.replace(
-    /CLI_VERSION = '[^']+'/,
+    CLI_VERSION_RE,
     `CLI_VERSION = '${version}'`
   )
   await writeFile(defaultConfigPath, updated, 'utf-8')

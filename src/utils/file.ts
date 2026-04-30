@@ -2,6 +2,9 @@ import { Buffer } from 'node:buffer'
 import { accessSync, mkdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 
+const LEADING_DOT_RE = /^\./
+const BASE64_PART_RE = /\.base64\.part\d+\.txt$/
+
 /**
  * 检查文件是否存在
  */
@@ -90,13 +93,13 @@ export function validateExtension(
   expectedExt: string
 ): boolean {
   const fileName = getFileName(filePath).toLowerCase()
-  const normalizedExt = expectedExt.toLowerCase().replace(/^\./, '')
+  const normalizedExt = expectedExt.toLowerCase().replace(LEADING_DOT_RE, '')
 
   if (fileName.endsWith(`.${normalizedExt}`)) return true
 
   // 兼容切片格式: name.base64.partN.txt
   if (normalizedExt === 'base64.txt') {
-    return /\.base64\.part\d+\.txt$/.test(fileName)
+    return BASE64_PART_RE.test(fileName)
   }
 
   return false
@@ -105,9 +108,10 @@ export function validateExtension(
 /**
  * 将 Buffer 转换为 Base64 字符串
  */
-export const bufferToBase64 = (data: Buffer) => data.toString('base64')
+export const bufferToBase64 = (data: Buffer): string => data.toString('base64')
 
 /**
  * 将 Base64 字符串转换为 Buffer
  */
-export const base64ToBuffer = (data: string) => Buffer.from(data, 'base64')
+export const base64ToBuffer = (data: string): Buffer =>
+  Buffer.from(data, 'base64')

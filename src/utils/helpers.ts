@@ -18,6 +18,8 @@ import { confirm, password, text } from '#/utils/prompts'
 
 import { AppError, FileError, ValidationError } from './errors'
 
+const CHUNK_FILENAME_RE = /^(.+\.base64\.part)\d+(\.txt)$/i
+
 /**
  * 命令执行上下文
  */
@@ -59,7 +61,7 @@ export interface LoadingSpinner {
 /**
  * Loading 加载器
  */
-export function loading(initialMessage?: string) {
+export function loading(initialMessage?: string): LoadingSpinner {
   const s = spinner()
   s.start(initialMessage)
 
@@ -69,14 +71,14 @@ export function loading(initialMessage?: string) {
   } as LoadingSpinner
 }
 
-export function showIntro(isShow: boolean) {
+export function showIntro(isShow: boolean): void {
   if (isShow) {
     console.log('')
     intro(bold.cyan(`🔧 ${CLI_NAME}`))
   }
 }
 
-export function showOutro(message: string) {
+export function showOutro(message: string): void {
   outro(bold.green(message))
 }
 
@@ -139,7 +141,7 @@ export async function getInputPath(
 export async function getPassword(
   providedPwd: string,
   options?: { confirm?: boolean }
-) {
+): Promise<string> {
   let userPwd = providedPwd
 
   if (!userPwd) {
@@ -327,7 +329,7 @@ export async function discoverChunks(chunkPath: string): Promise<string[]> {
   const fileName = getFileName(chunkPath)
 
   // 从 name.base64.partN.txt 提取 name.base64.part 前缀
-  const match = fileName.match(/^(.+\.base64\.part)\d+(\.txt)$/i)
+  const match = fileName.match(CHUNK_FILENAME_RE)
   if (!match) {
     throw new ValidationError(
       `文件名不符合切片命名规则: ${fileName}`,

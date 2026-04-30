@@ -12,6 +12,9 @@ import { DEFAULT_CONFIG } from '#/config/defaults'
 import { FFmpegError, ValidationError } from '#/utils/errors'
 import { ensureDir } from '#/utils/file'
 
+const DURATION_RE = /Duration: (\d{2}):(\d{2}):(\d{2}\.\d{2})/
+const TIME_RE = /time=(\d{2}):(\d{2}):(\d{2}\.\d{2})/
+
 /**
  * 解析时间字符串为秒
  */
@@ -105,9 +108,7 @@ export async function extractAudio(
         const text = data.toString()
 
         // 解析总时长
-        const durationMatch = text.match(
-          /Duration: (\d{2}):(\d{2}):(\d{2}\.\d{2})/
-        )
+        const durationMatch = text.match(DURATION_RE)
         if (durationMatch) {
           duration = parseTime(
             durationMatch[1],
@@ -117,7 +118,7 @@ export async function extractAudio(
         }
 
         // 解析当前进度
-        const timeMatch = text.match(/time=(\d{2}):(\d{2}):(\d{2}\.\d{2})/)
+        const timeMatch = text.match(TIME_RE)
         if (timeMatch && duration > 0) {
           const currentTime = parseTime(
             timeMatch[1],

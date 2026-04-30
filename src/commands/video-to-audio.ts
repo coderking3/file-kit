@@ -28,7 +28,9 @@ const FORMAT_OPTIONS = [
 ]
 
 // 获取质量选项
-const getQualityOptions = (format: AudioFormat) => {
+const getQualityOptions = (
+  format: AudioFormat
+): { value: string; label: string; hint: string }[] => {
   if (format === 'flac') {
     return [
       { value: 'low', label: '快速', hint: '级别 0' },

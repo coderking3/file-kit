@@ -52,7 +52,7 @@ const cliArgs = {
   version: false
 }
 
-function preprocessArgs(rawArgs: string[]) {
+function preprocessArgs(rawArgs: string[]): void {
   cliArgs.help = rawArgs.some((arg) => arg === '--help' || arg === '-h')
   cliArgs.version = rawArgs.some((arg) => arg === '--version' || arg === '-v')
 
@@ -67,7 +67,7 @@ function preprocessArgs(rawArgs: string[]) {
 /**
  * 显示版本信息
  */
-function showVersion() {
+function showVersion(): void {
   console.log(
     ansis.cyan(`
   ╭──────────────────────────╮
@@ -82,7 +82,7 @@ function showVersion() {
 /**
  * 显示帮助信息
  */
-function showHelp() {
+function showHelp(): void {
   console.log(
     `\n${ansis.bold(`🔧 ${CLI_NAME}`)}${ansis.dim(` - 多功能文件工具箱 (${CLI_ALIAS} v${CLI_VERSION})`)}\n`
   )
@@ -142,7 +142,7 @@ function showHelp() {
 /**
  * 交互模式
  */
-async function runInteractiveMode() {
+async function runInteractiveMode(): Promise<void> {
   showIntro(true)
 
   const choice = await select<keyof typeof COMMAND_MAP>({

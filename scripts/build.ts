@@ -8,6 +8,9 @@ import { bold, cyan, dim, green, magenta, red, yellow } from 'ansis'
 // File rename configuration
 const RENAME_MAP = [{ from: 'cli.mjs', to: 'cli.js' }] as const
 
+const EMPTY_EXPORT_NEWLINE_RE = /\nexport\s*\{\s*\}\s*(?:;\s*)?$/
+const EMPTY_EXPORT_LINE_RE = /export\s*\{\s*\}\s*;?\n?$/m
+
 const distDir = join(process.cwd(), 'dist')
 
 /**
@@ -59,8 +62,8 @@ function cleanEmptyExports(fileName: string): boolean {
     // Remove trailing "export { }"
     const originalContent = content
     content = content
-      .replace(/\nexport\s*\{\s*\}\s*(?:;\s*)?$/, '')
-      .replace(/export\s*\{\s*\}\s*;?\n?$/m, '')
+      .replace(EMPTY_EXPORT_NEWLINE_RE, '')
+      .replace(EMPTY_EXPORT_LINE_RE, '')
       .trimEnd()
 
     // Only write if content changed
